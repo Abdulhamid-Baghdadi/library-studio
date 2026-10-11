@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Library Studio</title>
+  <meta name="description" content="Workbench for a publication library kept as Obsidian notes: cluster discovery, citations, the publication-link rule and an export for MS Office. The vault stays on your own PC.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="app.css">
+  <script>
+    try { document.documentElement.dataset.theme = localStorage.getItem("theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
+    catch (e) { document.documentElement.dataset.theme = "light"; }
+  </script>
+</head>
+<body>
+  <!-- start screen: shown until a vault folder is open -->
+  <main class="start" id="start" hidden>
+    <aside class="sidebar start-side">
+      <div class="brand"><div class="logo" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="6" cy="7" r="2.5"/><circle cx="17" cy="6" r="2.5"/><circle cx="12" cy="17" r="2.5"/><path d="M8 8l3 7M15 8l-2 7M8.5 7h6"/></svg>
+      </div>Library Studio</div>
+      <p class="start-side-note">The tools. They open once a vault folder is open.</p>
+      <nav class="tools" id="startTools" aria-label="Tools"></nav>
+      <div class="start-side-foot">
+        <button class="btn sm ghost" id="startTheme" type="button">🌓 Light / dark</button>
+        <button class="btn sm ghost" id="startInstall" type="button" title="Install it as a desktop app that works offline">⬇ Install as an app</button>
+        <a class="btn sm ghost" href="https://github.com/Robotat-tube/library-studio" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </aside>
+    <section class="start-main">
+      <div class="start-hero">
+        <span class="pill accent">Publication library · Obsidian vault</span>
+        <h1>Your library, <span class="grad">seen whole.</span></h1>
+        <p class="lead">Discover clusters of papers by what they are about, fill in who cites whom from OpenAlex, keep the publication-link rule, and export the library for colleagues who work in Excel. Everything is read from and written to your vault folder; nothing is uploaded.</p>
+        <div id="startBody"></div>
+      </div>
+      <div class="start-features">
+        <div class="card feature"><div class="ficon" aria-hidden="true">🧩</div><h3>Cluster discovery</h3><p>Leiden communities over text, tags and links; hub notes, a report and graph presets in the vault.</p></div>
+        <div class="card feature"><div class="ficon" aria-hidden="true">🔗</div><h3>Citations</h3><p>References and cited-by lists between library papers, from OpenAlex, written as note properties.</p></div>
+        <div class="card feature"><div class="ficon" aria-hidden="true">📊</div><h3>Export</h3><p>Library.xlsx and an interactive graph page for people who do not use Obsidian.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="app" id="app" hidden>
+    <aside class="sidebar">
+      <div class="brand"><div class="logo" aria-hidden="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="6" cy="7" r="2.5"/><circle cx="17" cy="6" r="2.5"/><circle cx="12" cy="17" r="2.5"/><path d="M8 8l3 7M15 8l-2 7M8.5 7h6"/></svg>
+      </div>Library Studio</div>
+      <div class="vault" id="vault"></div>
+      <nav class="tools" id="tools" aria-label="Tools"></nav>
+      <div class="side-foot">
+        <button class="btn sm ghost" id="btnSettings" type="button" title="Folders inside the vault, Obsidian vault name, OpenAlex email">⚙ Settings</button>
+        <button class="btn sm ghost" id="btnTheme" type="button" title="Light / dark">🌓 Theme</button>
+        <button class="btn sm ghost" id="btnInstall" type="button" title="Install it as a desktop app that works offline">⬇ Install</button>
+        <button class="btn sm ghost" id="btnClose" type="button" title="Back to the start screen">⏏ Close vault</button>
+      </div>
+    </aside>
+    <main class="main" id="main">
+      <header class="topbar" id="topbar"></header>
+      <section class="content wide">
+        <div class="metrics" id="metrics"></div>
+        <div id="page"></div>
+      </section>
+    </main>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="tip" id="tip" role="tooltip"></div>
+  <script type="module" src="main.js"></script>
+  <script type="module" src="dev.js"></script>
+  <script src="install.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      const had = Boolean(navigator.serviceWorker.controller);
+      navigator.serviceWorker.addEventListener("controllerchange", () => { if (had) location.reload(); });
+      navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).catch(e => console.warn("offline support unavailable:", e));
+    }
+  </script>
+</body>
+</html>

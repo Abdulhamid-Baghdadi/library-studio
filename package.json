@@ -1,0 +1,20 @@
+{
+  "name": "library-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Workbench for a publication library kept as Obsidian notes: cluster discovery, citations from OpenAlex, the publication-link rule, and an export for MS Office. Runs in the browser; the vault stays on your own PC.",
+  "type": "module",
+  "exports": "./src/index.js",
+  "bin": {
+    "library-studio": "bin/library-studio.js"
+  },
+  "scripts": {
+    "test": "node --test \"tests/unit/**/*.test.js\"",
+    "check": "node scripts/check-architecture.js",
+    "serve": "node scripts/serve.js",
+    "build": "node scripts/build-site.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

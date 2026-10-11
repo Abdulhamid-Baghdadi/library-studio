@@ -1,0 +1,11 @@
+{
+  "name": "Library Studio",
+  "short_name": "Library Studio",
+  "description": "Workbench for a publication library kept as Obsidian notes: cluster discovery, citations, link rule, export. The vault stays on your own PC.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0891b2",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

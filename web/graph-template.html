@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library Graph</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/standalone/umd/vis-network.min.js"></script>
+<style>
+  :root {
+    --bg: #f7f7f5; --panel: #ffffff; --text: #1f2328; --muted: #5d6470; --border: #d8dbe0;
+    --accent: #2f5597; --paper: #4a78c2; --cat: #c4572a; --cite: #8a94a6; --catlink: #e3a487; --focus: #1a73e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181c; --panel: #1f2228; --text: #e6e8eb; --muted: #a3aab5; --border: #363b44;
+      --accent: #8fb0ef; --paper: #7aa2e8; --cat: #f08a5d; --cite: #6b7484; --catlink: #9a5a3e; --focus: #8ab4f8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181c; --panel: #1f2228; --text: #e6e8eb; --muted: #a3aab5; --border: #363b44;
+    --accent: #8fb0ef; --paper: #7aa2e8; --cat: #f08a5d; --cite: #6b7484; --catlink: #9a5a3e; --focus: #8ab4f8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, "Segoe UI", sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--panel); }
+  h1 { font-size: 16px; margin: 0 8px 0 0; }
+  label { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; cursor: pointer; }
+  input[type=search], select { min-height: 28px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; }
+  input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .swatch { display: inline-block; width: 18px; height: 3px; border-radius: 2px; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+  .muted { color: var(--muted); }
+  main { display: grid; grid-template-columns: 1fr 360px; height: calc(100vh - 54px); }
+  #net { min-height: 300px; }
+  aside { border-left: 1px solid var(--border); background: var(--panel); padding: 14px 16px; overflow: auto; }
+  aside h2 { font-size: 15px; margin: 0 0 6px; }
+  aside p { margin: 6px 0; }
+  .tag { display: inline-block; padding: 1px 8px; margin: 2px 4px 2px 0; border: 1px solid var(--border); border-radius: 10px; font-size: 12px; }
+  a { color: var(--accent); }
+  @media (max-width: 760px) {
+    main { grid-template-columns: 1fr; grid-template-rows: 60vh auto; height: auto; }
+    aside { border-left: 0; border-top: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Library graph</h1>
+  <label><input type="checkbox" id="showCat" checked><span class="swatch" style="background:var(--catlink)"></span>Concept map links</label>
+  <label><input type="checkbox" id="showCite"><span class="swatch" style="background:var(--cite)"></span>Citation links</label>
+  <label><input type="checkbox" id="showIso" checked>Papers without links</label>
+  <select id="cls" aria-label="Filter by class"><option value="">All classes</option></select>
+  <input type="search" id="q" placeholder="Search title, author, No." aria-label="Search papers">
+  <span class="muted" id="count"></span>
+</header>
+<main>
+  <div id="net" role="img" aria-label="Network of library papers and concept maps"></div>
+  <aside id="info" aria-live="polite">
+    <h2>How to use</h2>
+    <p><span class="dot" style="background:var(--paper)"></span> paper (bigger = cited by more library papers) &nbsp; <span class="dot" style="background:var(--cat)"></span> concept map</p>
+    <p>Switch link types on and off at the top. Click a node for details; double-click a concept map to show only its papers (double-click empty space to reset).</p>
+    <p class="muted">Exported from the Obsidian vault. Citations: between library papers only (OpenAlex).</p>
+  </aside>
+</main>
+<script>
+const DATA = /*DATA*/null;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const byId = Object.fromEntries(DATA.nodes.map(n => [n.id, n]));
+const cls = document.getElementById("cls");
+Object.entries(DATA.classes).forEach(([k, v]) => cls.add(new Option(v, k)));
+let focusCat = null;
+
+function visNode(n) {
+  if (n.kind === "category")
+    return { id: n.id, label: n.label, shape: "box", color: { background: css("--cat"), border: css("--cat") },
+             font: { color: "#fff", size: 15 }, margin: 8, mass: 3 };
+  return { id: n.id, label: n.label, shape: "dot", size: 6 + Math.sqrt(n.cited) * 4,
+           color: { background: css("--paper"), border: css("--paper") }, font: { color: css("--text"), size: 11 } };
+}
+function visEdge(e, i) {
+  const cat = e.kind === "category";
+  return { id: i, from: e.from, to: e.to, kind: e.kind, arrows: cat ? "" : { to: { enabled: true, scaleFactor: 0.4 } },
+           color: { color: css(cat ? "--catlink" : "--cite"), opacity: cat ? 0.5 : 0.6 }, width: cat ? 1 : 0.8,
+           smooth: false };
+}
+const nodes = new vis.DataSet(DATA.nodes.map(visNode));
+const edges = new vis.DataSet(DATA.edges.map(visEdge));
+const view = { nodes: new vis.DataView(nodes, { filter: n => nodeVisible(byId[n.id]) }),
+               edges: new vis.DataView(edges, { filter: edgeVisible }) };
+const net = new vis.Network(document.getElementById("net"), view, {
+  physics: { solver: "forceAtlas2Based", forceAtlas2Based: { gravitationalConstant: -60, springLength: 90 }, stabilization: { iterations: 250 } },
+  interaction: { hover: true, keyboard: { enabled: true, bindToWindow: false }, navigationButtons: false },
+});
+
+function matches(n) {
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  if (n.kind === "category") return true;
+  if (cls.value && n.class !== cls.value) return false;
+  if (focusCat && !n.cats.includes(focusCat)) return false;
+  return !q || [n.title, n.authors, n.label, String(n.no).padStart(3, "0")].join(" ").toLowerCase().includes(q);
+}
+function edgeVisible(e) {
+  if (e.kind === "category" && !document.getElementById("showCat").checked) return false;
+  if (e.kind === "citation" && !document.getElementById("showCite").checked) return false;
+  return matches(byId[e.from]) && matches(byId[e.to]);
+}
+function nodeVisible(n) {
+  if (!matches(n)) return false;
+  if (n.kind === "category") return document.getElementById("showCat").checked && (!focusCat || n.id === "cat:" + focusCat);
+  if (document.getElementById("showIso").checked) return true;
+  return edges.get({ filter: e => (e.from === n.id || e.to === n.id) && edgeVisible(e) }).length > 0;
+}
+function refresh() {
+  view.edges.refresh(); view.nodes.refresh();
+  document.getElementById("count").textContent = view.nodes.get().filter(n => byId[n.id].kind === "paper").length + " papers shown";
+}
+["showCat", "showCite", "showIso", "cls", "q"].forEach(id => document.getElementById(id).addEventListener("input", refresh));
+
+function show(n) {
+  const info = document.getElementById("info");
+  if (n.kind === "category") {
+    info.innerHTML = `<h2>${esc(n.label)}</h2><p>${n.count} papers. Double-click it in the graph to show only these.</p>`;
+    return;
+  }
+  const links = [n.doi ? `<a href="https://doi.org/${esc(n.doi)}" target="_blank" rel="noopener">DOI</a>` : "",
+                 n.pdf ? `<a href="${esc(encodeURI(n.pdf))}" target="_blank">PDF</a>` : ""].filter(Boolean).join(" · ");
+  info.innerHTML = `<h2>${esc(n.title)}</h2>
+    <p class="muted">No. ${String(n.no).padStart(3, "0")} · ${esc(n.authors)} · ${esc(n.year)}<br>${esc(n.journal)}</p>
+    <p>${n.class ? `<span class="tag">${esc(DATA.classes[n.class] || n.class)}</span>` : ""}${n.status ? `<span class="tag">${esc(n.status)}</span>` : ""}
+       <span class="tag">cited by ${n.cited} · cites ${n.refs} (library)</span></p>
+    <p>${n.cats.map(c => `<span class="tag">${esc(c.replace(/^\d+-\s*/, ""))}</span>`).join("")}</p>
+    ${links ? `<p>${links}</p>` : ""}
+    ${n.why ? `<p><strong>Why it matters.</strong> ${esc(n.why)}</p>` : ""}
+    ${n.abstract ? `<p><strong>Abstract.</strong> ${esc(n.abstract)}</p>` : ""}`;
+}
+net.on("click", p => { if (p.nodes.length) show(byId[p.nodes[0]]); });
+net.on("doubleClick", p => {
+  const n = p.nodes.length ? byId[p.nodes[0]] : null;
+  focusCat = n && n.kind === "category" ? n.id.slice(4) : null;
+  refresh();
+});
+refresh();
+</script>
+</body>
+</html>
