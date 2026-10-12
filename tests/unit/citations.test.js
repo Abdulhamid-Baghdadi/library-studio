@@ -40,5 +40,7 @@ test("OpenAlex request URLs and response reading", () => {
   assert.ok(urls[0].startsWith("https://api.openalex.org/works?filter=doi%3A10.1%2Fa%7C10.1%2Fb&per-page=2&select="));
   assert.ok(urls[0].includes("mailto=me%40x.org"));
   const works = worksFromResponse({ results: [{ id: "https://openalex.org/W1", doi: "https://doi.org/10.1/A", referenced_works: ["W2"] }] });
-  assert.deepEqual([...works], [["10.1/a", { id: "https://openalex.org/W1", referenced: ["W2"] }]]);
+  assert.deepEqual([...works.keys()], ["10.1/a"]);
+  assert.equal(works.get("10.1/a").id, "https://openalex.org/W1");
+  assert.deepEqual(works.get("10.1/a").referenced, ["W2"]);
 });

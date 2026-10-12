@@ -127,7 +127,7 @@ function settingsDialog() {
   const s = backend.settings;
   const fields = {};
   const field = (key, label) => {
-    fields[key] = h("input", { type: "text", value: s[key] ?? "", "aria-describedby": `help-${key}` });
+    fields[key] = h("input", { type: key === "apiKey" ? "password" : "text", autocomplete: "off", value: s[key] ?? "", "aria-describedby": `help-${key}` });
     return h("label", { class: "field" }, h("span", {}, label), fields[key], h("span", { class: "small muted", id: `help-${key}` }, SETTINGS_HELP[key]));
   };
   const body = h("div", { class: "stack" },
@@ -137,7 +137,8 @@ function settingsDialog() {
     field("presetsFile", "Graph Presets data file"),
     field("exportDir", "Export folder"),
     field("vaultName", "Obsidian vault name"),
-    field("mailto", "Email for OpenAlex (optional)"));
+    field("mailto", "Email for OpenAlex (optional)"),
+    field("apiKey", "OpenAlex API key (optional)"));
   modal("Settings for this vault", body, [["Cancel"], ["Save", async () => {
     const next = Object.fromEntries(Object.entries(fields).map(([k, el]) => [k, el.value.trim().replace(/[\\/]+$/, "")]));
     for (const k of ["libraryDir", "hubDir", "reportDir", "presetsFile", "exportDir"]) if (!next[k]) return toast("Folder and file paths cannot be empty.", "err");

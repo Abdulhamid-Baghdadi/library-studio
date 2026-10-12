@@ -22,4 +22,5 @@ export const SETTINGS_HELP = {
   exportDir: "Where Library.xlsx and Library graph.html are written.",
   vaultName: "The vault's name in Obsidian, for the 'Open in Obsidian' links. Leave empty to use the folder name.",
   mailto: "Your email for OpenAlex's polite pool (faster, more reliable answers). Optional.",
+  apiKey: "A free key from openalex.org raises OpenAlex's daily budget (without one: about 1000 credits a day; a lookup of 50 DOIs costs 1, a title search 10). Kept in this browser only.",
 };

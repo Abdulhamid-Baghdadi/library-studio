@@ -12,7 +12,9 @@
  *   cite        authors as cited, from the file name ("Baldwin & Clark")
  *   categories  concept maps linked in `category` (link targets)
  *   tags        lower-cased `tags`
- *   refs, citedBy   note names in `references` / `cited_by`
+ *   refs, citedBy   note names in `references` / `cited_by` (from OpenAlex)
+ *   refsPdf     note names in `references_pdf` (read from the PDF by Claude or by hand)
+ *   suggestedDoi, suggestedCategory, enrichedBy   proposals and provenance written by the enrich tool
  *   citekey     the `citekey` property ("" until the BibTeX export assigns one)
  *   links       Set of note names linked from the body
  *   abstract, why   the "Abstract" and "Why is this paper important?" sections
@@ -52,7 +54,11 @@ export function readPublication(stem, text) {
     categories: asList(props.category).map(c => linkTarget(c)).filter(Boolean),
     tags: asList(props.tags).map(t => String(t).toLowerCase()),
     refs: asList(props.references).map(r => linkTarget(r)),
+    refsPdf: asList(props.references_pdf).map(r => linkTarget(r)),
     citedBy: asList(props.cited_by).map(r => linkTarget(r)),
+    suggestedDoi: scalar(props.suggested_doi),
+    suggestedCategory: linkTarget(scalar(props.suggested_category)),
+    enrichedBy: asList(props.enriched_by).map(String),
     links: bodyLinks(body),
     abstract: section(body, "Abstract"),
     why: section(body, "Why is this paper important\\?"),

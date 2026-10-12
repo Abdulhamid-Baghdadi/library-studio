@@ -6,12 +6,12 @@
 import { browserFolder, requestAccess } from "../adapters/browser-folder.js";
 import { forgetVault, recentVaults, rememberVault } from "../adapters/browser-store.js";
 import { fetchHttp } from "../adapters/fetch-http.js";
-import { checkLinks, citekeysMissing, CLUSTER_DEFAULTS, CLUSTER_PATHS, EXPORT_DIR, exportLibrary, LIBRARY_DIR, openLibrary, updateCitations } from "../index.js";
+import { checkLinks, citekeysMissing, CLUSTER_DEFAULTS, CLUSTER_PATHS, enrichLibrary, EXPORT_DIR, exportLibrary, LIBRARY_DIR, openLibrary, updateCitations, withApiKey } from "../index.js";
 
 /** Settings of a vault and their defaults. */
 export const SETTINGS = {
   libraryDir: LIBRARY_DIR, hubDir: CLUSTER_PATHS.hubDir, reportDir: CLUSTER_PATHS.reportDir, presetsFile: CLUSTER_PATHS.presetsFile,
-  exportDir: EXPORT_DIR, vaultName: "", mailto: "", cluster: {},
+  exportDir: EXPORT_DIR, vaultName: "", mailto: "", apiKey: "", cluster: {},
 };
 
 const clock = () => ({
@@ -32,6 +32,9 @@ export class Backend {
     this.workerUrl = workerUrl;
     this.templateUrl = templateUrl;
   }
+
+  /** HTTP for OpenAlex, with the user's API key when one is set. */
+  #http() { return withApiKey(fetchHttp(), this.settings.apiKey); }
 
   get settings() { return { ...SETTINGS, ...(this.entry?.settings ?? {}) }; }
 
@@ -115,7 +118,13 @@ export class Backend {
   get lastCluster() { return this.entry?.lastCluster ?? null; }
 
   async citations({ apply = false, onProgress } = {}) {
-    const r = await updateCitations(this.folder, this.library, fetchHttp(), { apply, mailto: this.settings.mailto, onProgress });
+    const r = await updateCitations(this.folder, this.library, this.#http(), { apply, mailto: this.settings.mailto, onProgress });
+    if (apply) await this.reload();
+    return r;
+  }
+
+  async enrich({ apply = false, onProgress } = {}) {
+    const r = await enrichLibrary(this.folder, this.library, this.#http(), { apply, mailto: this.settings.mailto, clock: clock(), onProgress });
     if (apply) await this.reload();
     return r;
   }

@@ -4,5 +4,6 @@ import { cluster } from "./cluster.js";
 import { citations } from "./citations.js";
 import { links } from "./links.js";
 import { exportPage } from "./export.js";
+import { enrich } from "./enrich.js";
 
-export const TOOLS = [overview, cluster, citations, links, exportPage];
+export const TOOLS = [overview, cluster, citations, enrich, links, exportPage];

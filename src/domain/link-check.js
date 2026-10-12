@@ -1,6 +1,6 @@
 /**
  * The vault rule for publication notes: a publication note must not contain an Obsidian link ([[…]] or ![[…]])
- * to another publication note, except in the citation properties `references` and `cited_by`.
+ * to another publication note, except in the citation properties `references`, `references_pdf` and `cited_by`.
  *
  *   publicationIndex(papers)          Map note name → `index` ("" when missing), for every publication note
  *   forbiddenLinks(text, stem, pubs)  the offending links in one note: [{ target, alias, start, end }]
@@ -9,7 +9,7 @@
  * @module domain/link-check
  */
 
-const CITATION_PROPS = /^(?:references|cited_by):[ \t]*\r?\n(?:[ \t]+-.*\r?\n?)*/gm;
+const CITATION_PROPS = /^(?:references|references_pdf|cited_by):[ \t]*\r?\n(?:[ \t]+-.*\r?\n?)*/gm;
 const LINK = /!?\[\[([^\]|#]+?)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]/g;
 
 /** @param {Iterable<{stem: string, index: string, no: number}>} papers */

@@ -1,6 +1,6 @@
 # Library Studio — notes for Claude
 
-A browser app for a publication library kept as Obsidian notes (`98 - Publications/NNN - Year - Authors - Title.md`, `type: publication`). It reads and writes the vault folder through the File System Access API; nothing is uploaded. Four tools: cluster discovery, citations (OpenAlex), the publication-link rule, export (xlsx + graph page). It replaced the Python scripts of `95 - Tools` in the vault `Modular_Electronics_Obsidian v1`.
+A browser app for a publication library kept as Obsidian notes (`98 - Publications/NNN - Year - Authors - Title.md`, `type: publication`). It reads and writes the vault folder through the File System Access API; nothing is uploaded. Tools: cluster discovery, citations (OpenAlex), enrich (OpenAlex metadata, proposals, Gaps.md / Candidates.md / References.json), the publication-link rule, export (xlsx + graph page + Library.bib). The Claude skill `.claude/skills/library-fill-gaps` does the reading pass over Gaps.md. It replaced the Python scripts of `95 - Tools` in the vault `Modular_Electronics_Obsidian v1`.
 
 ## Working with the user
 
@@ -18,6 +18,10 @@ A browser app for a publication library kept as Obsidian notes (`98 - Publicatio
 - `npm test` unit tests · `npm run check` architecture · `npm run build` → `dist/`.
 - Browser automation cannot use the folder picker: `node scripts/serve.js 8771 --fixture "<copy of a vault>"` and open `/web/?fixture` — `web/dev.js` copies the fixture into the browser's storage and opens it. Never test on the user's real vault; use a copy (notes only, empty files in place of PDFs are fine).
 - Command line: `node bin/library-studio.js cluster|citations|check-links|export --vault "<vault>"`.
+
+## OpenAlex budget
+
+- OpenAlex has a free daily budget (about 1000 credits; filter lookups 1, searches 10). Repeated test runs against the real API use it up for the day (429 with Retry-After of many hours). Test with fake `http` objects (see tests/unit/openalex-works.test.js); hit the real API only for a final check. `getJson` throws `OpenAlexBudgetError` at once instead of waiting.
 
 ## Writing code here
 

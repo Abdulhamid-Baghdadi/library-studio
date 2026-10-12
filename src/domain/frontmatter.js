@@ -6,6 +6,9 @@
  *   formatList(key, items)     → YAML lines for a list property of links ('key: []' when empty)
  *   replaceProps(text, {key: lines}) → note text with those properties replaced or added (before `category:` when present)
  *   insertProp(text, key, value, after) → note text with a scalar property added after another one (unchanged when present)
+ *   setScalar(text, key, value, after)  → the property's value replaced (also an empty one), or the property added
+ *   appendListItem(text, key, item, after) → an item added to a list property (created when missing; no duplicates)
+ *   yamlScalar(value)          → the value as Obsidian would write it (JSON-quoted when YAML needs it)
  *   linkTarget(value)          → 'Note name' from '[[Note name|alias]]' (the value itself when it is not a link)
  *   WIKILINK                   → regex source for [[target#heading|alias]] with groups (target, alias); matches embeds too
  *
@@ -77,6 +80,53 @@ export function insertProp(text, key, value, after) {
   lines.splice(i, 0, `${key}: ${value}`);
   const out = lf.slice(0, m.index + 4) + lines.join("\n") + lf.slice(m.index + 4 + m[1].length);
   return out.replace(/\n/g, eol);
+}
+
+/** A YAML scalar as Obsidian writes it: quoted (JSON) when it has characters YAML would misread. */
+export const yamlScalar = v => {
+  const s = String(v ?? "");
+  const plain = s !== "" && !/^[\s\-?:,[\]{}#&*!|>'"%@`]/.test(s) && !/: |\s#|\s$|\n/.test(s) && !/^(true|false|null|yes|no|~)$/i.test(s);
+  return plain ? s : JSON.stringify(s);
+};
+
+/**
+ * Sets a scalar property: replaces its value when the property exists (also when empty), else adds it
+ * after `after` (insertProp). Line endings are kept.
+ */
+export function setScalar(text, key, value, after) {
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const lf = text.replace(/\r\n/g, "\n");
+  const m = /^---\n([\s\S]*?)\n---/.exec(lf);
+  if (!m) return text;
+  const re = new RegExp(`^${key}:[^\\n]*(?:\\n[ \\t]+-[^\\n]*)*`, "m");
+  if (!re.test(m[1])) return insertProp(text, key, yamlScalar(value), after);
+  const block = m[1].replace(re, `${key}: ${yamlScalar(value)}`);
+  return (lf.slice(0, m.index + 4) + block + lf.slice(m.index + 4 + m[1].length)).replace(/\n/g, eol);
+}
+
+/** Adds an item to a list property (created when missing, appended after `after`); a duplicate item is not added. */
+export function appendListItem(text, key, item, after) {
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const lf = text.replace(/\r\n/g, "\n");
+  const m = /^---\n([\s\S]*?)\n---/.exec(lf);
+  if (!m) return text;
+  const re = new RegExp(`^${key}:[^\\n]*((?:\\n[ \\t]+-[^\\n]*)*)`, "m");
+  const found = re.exec(m[1]);
+  const line = `  - ${yamlScalar(item)}`;
+  let block;
+  if (!found) {
+    const lines = m[1].split("\n");
+    const at = after ? lines.findIndex(l => l.startsWith(`${after}:`)) : -1;
+    let i = at < 0 ? lines.length : at + 1;
+    while (at >= 0 && i < lines.length && /^\s+-/.test(lines[i])) i++;
+    lines.splice(i, 0, `${key}:`, line);
+    block = lines.join("\n");
+  } else {
+    const items = found[1].split("\n").filter(Boolean).map(l => unquote(l.replace(/^\s+-\s*/, "")));
+    if (items.includes(String(item))) return text;
+    block = m[1].replace(re, `${key}:${found[1]}\n${line}`);
+  }
+  return (lf.slice(0, m.index + 4) + block + lf.slice(m.index + 4 + m[1].length)).replace(/\n/g, eol);
 }
 
 /** Replace (or add) whole properties. `lines` maps a key to the YAML text of that property, ending in \n. */

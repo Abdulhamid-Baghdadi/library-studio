@@ -14,6 +14,7 @@ export { fixLinks, forbiddenLinks, publicationIndex } from "./domain/link-check.
 export { CLASS_NAMES, EXPORT_DIR, GRAPH_PAGE, graphData, graphPage, WORKBOOK, workbook } from "./domain/export.js";
 export { xlsx } from "./domain/xlsx.js";
 export { assignCitekeys, bibtexEntry, citekeyFor, libraryBibtex, parseAuthors } from "./domain/bibtex.js";
+export { applyPlan, categoryProposals, FILES as ENRICH_FILES, gapsMarkdown, planPaper } from "./domain/enrich.js";
 export { normalizeNewlines } from "./domain/text-rules.js";
 
 // services: use cases
@@ -22,6 +23,8 @@ export { PATHS as CLUSTER_PATHS, runClusterDiscovery } from "./services/cluster-
 export { updateCitations } from "./services/citations.js";
 export { checkLinks } from "./services/link-check.js";
 export { BIBTEX, citekeysMissing, exportLibrary } from "./services/export.js";
+export { enrichLibrary } from "./services/enrich.js";
+export { OpenAlexBudgetError, withApiKey } from "./services/openalex-works.js";
 
 // adapters
 export { memoryFolder } from "./adapters/memory-folder.js";
