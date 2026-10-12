@@ -40,7 +40,7 @@ test("citekeyFor and assignCitekeys: stable, ASCII, disambiguated", () => {
   assert.equal(citekeyFor(paper(4, "Talens Peiró et al.", "2017", "", "Talens Peiro et al.")), "talenspeiro2017");   // the file name has no accent
   assert.equal(citekeyFor(paper(6, "World Steel Association", "2022", "", "World Steel Association")), "wsa2022");
   assert.equal(citekeyFor(paper(8, "Simpson, TW; Bobuk, A", "2012", "", "Simpson et al.")), "simpson2012");
-  assert.ok(bibtexEntry(paper(6, "World Steel Association", "2022", "", "World Steel Association"), "k").includes("author = {{World Steel Association}}"));
+  assert.match(bibtexEntry(paper(6, "World Steel Association", "2022", "", "World Steel Association"), "k"), /author\s+= \{\{World Steel Association\}\}/);
   assert.equal(citekeyFor(paper(3, "Anon", "")), "anonnd");
   const keys = assignCitekeys([paper(5, "Ulrich", "1995"), paper(7, "Ulrich", "1995"), paper(2, "Ulrich", "1995", "ulrich1995"), paper(9, "Ulrich", "1995")]);
   assert.deepEqual([...keys], [["2", "ulrich1995"], ["5", "ulrich1995a"], ["7", "ulrich1995b"], ["9", "ulrich1995c"]]);
