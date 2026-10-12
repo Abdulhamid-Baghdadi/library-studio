@@ -17,7 +17,7 @@ A browser app for a publication library kept as Obsidian notes (`98 - Publicatio
 - `Start Library Studio.cmd` or `npm run serve` → http://localhost:8771/web/ — Chrome or Edge in a normal window.
 - `npm test` unit tests · `npm run check` architecture · `npm run build` → `dist/`.
 - Browser automation cannot use the folder picker: `node scripts/serve.js 8771 --fixture "<copy of a vault>"` and open `/web/?fixture` — `web/dev.js` copies the fixture into the browser's storage and opens it. Never test on the user's real vault; use a copy (notes only, empty files in place of PDFs are fine).
-- Command line: `node bin/library-studio.js cluster|citations|check-links|export --vault "<vault>"`.
+- Command line: `node bin/library-studio.js cluster|citations|enrich|check-links|export --vault "<vault>"`.
 
 ## OpenAlex budget
 
@@ -25,7 +25,7 @@ A browser app for a publication library kept as Obsidian notes (`98 - Publicatio
 
 ## Writing code here
 
-- Write JavaScript with the Write/Edit tools, not shell heredocs. Never put U+2028/U+2029 or other line separators literally into a regex; use ` ` in a string passed to `new RegExp`.
+- Write JavaScript with the Write/Edit tools, not shell heredocs. Never put U+2028/U+2029 or other line separators literally into a regex; write the escape `\u2028` inside a string passed to `new RegExp`.
 - Keep the vault format stable: note names, the property names `references` / `cited_by`, the hub note and report layout, the `[auto] ` preset names. Line endings of existing notes are kept (CRLF on Windows).
 - The analysis must stay deterministic for a seed; `tests/unit/community.test.js` and `graph-metrics.test.js` compare with the reference formulas.
 - Hosting: GitHub Pages from Robotat-tube/library-studio (`.github/workflows/pages.yml`, on every push to main).
