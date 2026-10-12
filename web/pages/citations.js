@@ -20,9 +20,10 @@ export const citations = {
       if (LAST) { toast(`${LAST.links} citations between library papers`, "ok"); ctx.rerender(); }
     });
     const writeBtn = btn("Write references and cited_by…", async e => {
+      const button = e.currentTarget;                 // currentTarget is gone after the first await
       const ok = await confirmBox("Write the citation properties?", `The properties references and cited_by of all ${P.length} publication notes in "${s.libraryDir}" are rewritten from OpenAlex. Nothing else in the notes changes. Links to other publications are allowed only in these two properties.`, "Write");
       if (!ok) return;
-      LAST = await busy(e.currentTarget, () => backend.citations({ apply: true, onProgress: m => { status.textContent = m; } }), "Writing…");
+      LAST = await busy(button, () => backend.citations({ apply: true, onProgress: m => { status.textContent = m; } }), "Writing…");
       if (LAST) { toast(`Written: ${LAST.written} notes changed`, "ok"); ctx.rerender(); }
     }, "primary");
     return h("div", {},

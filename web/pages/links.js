@@ -14,9 +14,10 @@ export const links = {
       if (LAST) { toast(LAST.total ? `${LAST.total} link(s) between publication notes` : "No links between publication notes", LAST.total ? "" : "ok"); ctx.rerender(); }
     }, "primary");
     const fixBtn = LAST && LAST.total && !LAST.fixed ? btn("Fix all…", async e => {
+      const button = e.currentTarget;                 // currentTarget is gone after the first await
       const ok = await confirmBox("Fix all links?", `Each of the ${LAST.total} link(s) in ${LAST.findings.length} note(s) becomes plain text: its alias, or "Authors Year (No. NNN)". This edits the notes in "${s.libraryDir}".`, "Fix all");
       if (!ok) return;
-      LAST = await busy(e.currentTarget, () => backend.checkLinks({ fix: true }), "Fixing…");
+      LAST = await busy(button, () => backend.checkLinks({ fix: true }), "Fixing…");
       if (LAST) { toast(`Replaced ${LAST.total} link(s) with plain-text references`, "ok"); ctx.rerender(); }
     }) : null;
     return h("div", {},

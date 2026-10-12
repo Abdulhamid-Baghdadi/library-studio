@@ -11,8 +11,9 @@ export const exportPage = {
     const s = backend.settings;
     const missing = backend.citekeysMissing;
     const runBtn = btn("Export now", async e => {
+      const button = e.currentTarget;                 // currentTarget is gone after the first await
       if (missing && !(await confirmBox("Add cite keys to the notes?", `${missing} publication note(s) have no citekey property yet. The export adds one (e.g. ulrich1995) after the doi property of each, so the BibTeX entries have stable keys. Nothing else in the notes changes.`, "Add keys and export"))) return;
-      LAST = await busy(e.currentTarget, () => backend.export(), "Writing…");
+      LAST = await busy(button, () => backend.export(), "Writing…");
       if (LAST) { toast(`Exported ${LAST.papers} papers` + (LAST.bibtex.citekeysWritten ? `; citekey added to ${LAST.bibtex.citekeysWritten} notes` : ""), "ok"); ctx.rerender(); }
     }, "primary");
     const download = (path, type) => async e => {
