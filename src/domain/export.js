@@ -41,11 +41,11 @@ export function workbook(papers, { pdfHref }) {
   for (const p of papers) for (const c of p.categories) { if (!cats.has(c)) cats.set(c, []); cats.get(c).push(p); }
   const maps = [...cats].sort((a, b) => compareCodePoints(a[0], b[0])).map(([c, ps]) => [c, ps.length, ps.sort((a, b) => a.no - b.no).map(no3).join(", ")]);
   const readme = [
-    "Library export from the Obsidian vault (98 - Publications). Do not edit here: changes are overwritten",
+    "Library export from the Obsidian vault (the publication notes of the library). Do not edit here: changes are overwritten",
     "at the next export. Edit the notes in the vault and run the export again in Library Studio.",
     "", "Class: UAntwerpen/VABB codes. " + Object.values(CLASS_NAMES).join("; "),
     "References / Cited by: citations between library papers only (OpenAlex; papers without a DOI are not covered).",
-    "PDF links work when this file stays in the vault folder next to 98 - Publications.",
+    "PDF links work when this file stays in the vault folder next to the library folder.",
   ].map(line => [line]);
   return [
     { name: "Library", headers: ["No.", "Year", "Authors", "Title", "Journal / venue", "Class", "Type", "Status", "Importance",

@@ -1,5 +1,5 @@
 /**
- * Publication notes of the library ("98 - Publications/NNN - Year - Authors - Title.md", `type: publication`).
+ * Publication notes of the library ("00 - Library/NNN - Year - Authors - Title.md", `type: publication`).
  *
  *   readPublication(stem, text) → Paper | null   everything the tools need from one note (null: not a publication)
  *   section(body, name)                           text of "## <name>" up to the next "## " heading, one line
@@ -22,7 +22,9 @@
  */
 import { linkTarget, splitNote } from "./frontmatter.js";
 
-export const LIBRARY_DIR = "98 - Publications";
+export const LIBRARY_DIR = "00 - Library";
+/** Older names of the library folder, still recognised. */
+export const LEGACY_LIBRARY_DIRS = Object.freeze(["98 - Publications"]);
 export const PDF_DIR = `${LIBRARY_DIR}/PDFs`;
 
 const asList = v => (Array.isArray(v) ? v : v == null || v === "" ? [] : [v]);

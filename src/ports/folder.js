@@ -2,7 +2,7 @@
  * Port: the vault folder. Services read and write the vault only through this interface, so the same
  * code runs on Node (tests, command line) and in the browser (File System Access API).
  *
- * Paths are relative to the vault folder and always use "/" (e.g. "98 - Publications/005 - ….md").
+ * Paths are relative to the vault folder and always use "/" (e.g. "00 - Library/005 - ….md").
  * Text is UTF-8 and is never re-encoded: line endings are kept as they are in the file.
  * Implementations: adapters/node-folder.js, adapters/memory-folder.js, adapters/browser-folder.js.
  *

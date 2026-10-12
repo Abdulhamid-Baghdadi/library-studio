@@ -13,10 +13,10 @@
 //                suggested_category, writes Gaps.md, Candidates.md and References.json in the library folder.
 //                Without --apply: a dry run that only prints what would change. --mailto <email> for the polite pool.
 //   check-links  reports links between publication notes; --fix replaces them by plain-text references
-//   export       writes "96 - Library export/Library.xlsx", "Library graph.html" and "98 - Publications/Library.bib";
+//   export       writes "96 - Library export/Library.xlsx", "Library graph.html" and "00 - Library/Library.bib";
 //                adds a citekey property to notes without one (--no-citekeys: leave the notes untouched)
 //
-//   --vault defaults to the current folder (it must contain "98 - Publications").
+//   --vault defaults to the current folder (it must contain "00 - Library", or the older "98 - Publications").
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { nodeFolder } from "../src/adapters/node-folder.js";
@@ -40,7 +40,7 @@ async function main() {
   if (!command || flag("help")) { console.log((await readFile(new URL(import.meta.url), "utf8")).split("\n").slice(1, 21).map(l => l.replace(/^\/\/ ?/, "")).join("\n")); return 0; }
   const vault = resolve(opt("vault", process.cwd()));
   const folder = nodeFolder(vault);
-  const library = await openLibrary(folder, { libraryDir: opt("library", "98 - Publications") });
+  const library = await openLibrary(folder, { libraryDir: opt("library") });
   console.log(`${library.papers.length} publication notes in ${vault}\\${library.dir}`);
 
   if (command === "cluster") {

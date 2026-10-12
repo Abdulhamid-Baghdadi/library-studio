@@ -1,6 +1,6 @@
 /**
  * Writes the library export into the vault: "96 - Library export/Library.xlsx" and "Library graph.html", and
- * the BibTeX file "98 - Publications/Library.bib" (one entry per note, cite keys = the notes' `citekey`
+ * the BibTeX file "00 - Library/Library.bib" (one entry per note, cite keys = the notes' `citekey`
  * property, which is added to notes that do not have one yet).
  *
  *   exportLibrary(folder, library, { template, exportDir, clock, citekeys })

@@ -5,12 +5,12 @@ description: Work through Gaps.md of a publication library (Library Studio): rea
 
 # Fill the gaps of the library from the PDFs
 
-The library is a folder of publication notes (`98 - Publications/NNN - Year - Authors - Title.md`, `type: publication`) in an Obsidian vault. Library Studio's **enrich** tool has already filled everything OpenAlex knows and written `98 - Publications/Gaps.md`: the papers that remain incomplete and why. Your job is the reading pass over that list, nothing more. You never decide what a paper means; you copy what it says.
+The library is a folder of publication notes (`00 - Library/NNN - Year - Authors - Title.md`, `type: publication`) in an Obsidian vault. Library Studio's **enrich** tool has already filled everything OpenAlex knows and written `00 - Library/Gaps.md`: the papers that remain incomplete and why. Your job is the reading pass over that list, nothing more. You never decide what a paper means; you copy what it says.
 
 ## Before you start
 
 1. Ask which vault, if more than one is open. Run Library Studio's enrich tool first if `Gaps.md` is older than the notes (`node bin/library-studio.js enrich --vault "<vault>" --apply`, from the Library Studio folder).
-2. Read `Gaps.md`. Each bullet names a note, its gaps and its PDF (`98 - Publications/PDFs/…`).
+2. Read `Gaps.md`. Each bullet names a note, its gaps and its PDF (`00 - Library/PDFs/…`).
 3. Work on the real notes only with the user's go-ahead; otherwise work on a copy and show the diff.
 
 ## For each paper in "Papers with gaps"

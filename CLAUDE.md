@@ -1,6 +1,6 @@
 # Library Studio — notes for Claude
 
-A browser app for a publication library kept as Obsidian notes (`98 - Publications/NNN - Year - Authors - Title.md`, `type: publication`). It reads and writes the vault folder through the File System Access API; nothing is uploaded. Tools: cluster discovery, citations (OpenAlex), enrich (OpenAlex metadata, proposals, Gaps.md / Candidates.md / References.json), the publication-link rule, export (xlsx + graph page + Library.bib). The Claude skill `.claude/skills/library-fill-gaps` does the reading pass over Gaps.md. It replaced the Python scripts of `95 - Tools` in the vault `Modular_Electronics_Obsidian v1`.
+A browser app for a publication library kept as Obsidian notes (`00 - Library/NNN - Year - Authors - Title.md`, `type: publication`). It reads and writes the vault folder through the File System Access API; nothing is uploaded. Tools: cluster discovery, citations (OpenAlex), enrich (OpenAlex metadata, proposals, Gaps.md / Candidates.md / References.json), the publication-link rule, export (xlsx + graph page + Library.bib). The Claude skill `.claude/skills/library-fill-gaps` does the reading pass over Gaps.md. It replaced the Python scripts of `95 - Tools` in the vault `Modular_Electronics_Obsidian v1`.
 
 ## Working with the user
 

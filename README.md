@@ -4,7 +4,7 @@
 
 **[▶ Open it in your browser](https://robotat-tube.github.io/library-studio/)** · Chrome or Edge on a computer · or run it locally with `Start Library Studio.cmd`
 
-The library is a folder of publication notes (`98 - Publications/NNN - Year - Authors - Title.md`, `type: publication`). Library Studio reads those notes and writes its results back into the vault; nothing is uploaded, there is no account, and everything it writes is a plain Markdown note, a JSON file or an export file.
+The library is a folder of publication notes (`00 - Library/NNN - Year - Authors - Title.md`, `type: publication`). Library Studio reads those notes and writes its results back into the vault; nothing is uploaded, there is no account, and everything it writes is a plain Markdown note, a JSON file or an export file.
 
 ## The tools
 
@@ -13,16 +13,16 @@ The library is a folder of publication notes (`98 - Publications/NNN - Year - Au
 | **Library** | What is in the library: papers per concept map, reading status, tags; the way into each tool. | — |
 | **Cluster discovery** | Groups the papers by what they are about (TF-IDF text similarity between mutual nearest neighbours, shared tags, wikilinks), finds communities with the Leiden algorithm repeated 100 times and combined by consensus clustering, checks robustness with a CPM density sweep, finds bridge papers (participation coefficient, betweenness), and compares the result with your concept maps (NMI, ARI). Interactive map and cluster cards on the page. | `Cluster discovery report.md`; unless it is a dry run: one hub note per cluster and the `[auto]` presets of the Graph Presets plugin (close Obsidian first). |
 | **Citations** | Which library papers cite which, from each paper's OpenAlex reference list (looked up by DOI). | The properties `references` and `cited_by` of every publication note. |
-| **Enrich** | Fills *empty* properties from OpenAlex (full author names, journal, year, URL, the Abstract section), proposes what it is unsure of (`suggested_doi` by exact title and year, `suggested_category` = nearest concept map by content), reports differences between note and OpenAlex, and lists what no database can fill. Existing values are never changed. | The notes (only empty properties, `suggested_*`, `enriched_by`); `98 - Publications/Gaps.md`, `Candidates.md` (papers cited by 3+ library papers, not yet in the library), `References.json` (full reference lists). |
+| **Enrich** | Fills *empty* properties from OpenAlex (full author names, journal, year, URL, the Abstract section), proposes what it is unsure of (`suggested_doi` by exact title and year, `suggested_category` = nearest concept map by content), reports differences between note and OpenAlex, and lists what no database can fill. Existing values are never changed. | The notes (only empty properties, `suggested_*`, `enriched_by`); `00 - Library/Gaps.md`, `Candidates.md` (papers cited by 3+ library papers, not yet in the library), `References.json` (full reference lists). |
 | **Link check** | The vault rule: a publication note must not link to another publication note except in those two properties. Finds violations and can replace them by plain text ("Authors Year (No. NNN)"). | The notes, when fixing. |
-| **Export** | The library for colleagues who work in MS Office, and as BibTeX for reference managers and LaTeX/Pandoc. | `96 - Library export/Library.xlsx` (papers, citations, concept maps), `Library graph.html` (interactive network) and `98 - Publications/Library.bib` (one entry per note; cite keys = the notes' `citekey` property, added once and then kept). |
+| **Export** | The library for colleagues who work in MS Office, and as BibTeX for reference managers and LaTeX/Pandoc. | `96 - Library export/Library.xlsx` (papers, citations, concept maps), `Library graph.html` (interactive network) and `00 - Library/Library.bib` (one entry per note; cite keys = the notes' `citekey` property, added once and then kept). |
 
 Settings (⚙ in the sidebar, per vault): the library folder, where hub notes, report, presets and exports go, the vault's name for "Open in Obsidian" links, and an email for OpenAlex's polite pool.
 
 ## Getting started
 
 1. Open **https://robotat-tube.github.io/library-studio/** in **Chrome or Edge** on a computer (or start it locally, see below).
-2. **Open a vault folder…** and choose the vault (the folder that contains `98 - Publications`). The browser asks once per visit before the app may read and edit files in it.
+2. **Open a vault folder…** and choose the vault (the folder that contains `00 - Library`). The browser asks once per visit before the app may read and edit files in it.
 3. Pick a tool in the sidebar. Every page says where its results are saved.
 
 Cluster discovery defaults to a **dry run** (report only). Untick it to replace the hub notes and the graph presets: close Obsidian first, so its Graph Presets plugin does not overwrite the new presets, and reload Obsidian afterwards.

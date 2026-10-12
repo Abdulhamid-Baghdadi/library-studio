@@ -6,7 +6,7 @@
 import { browserFolder, requestAccess } from "../adapters/browser-folder.js";
 import { forgetVault, recentVaults, rememberVault } from "../adapters/browser-store.js";
 import { fetchHttp } from "../adapters/fetch-http.js";
-import { checkLinks, citekeysMissing, CLUSTER_DEFAULTS, CLUSTER_PATHS, enrichLibrary, EXPORT_DIR, exportLibrary, LIBRARY_DIR, openLibrary, updateCitations, withApiKey } from "../index.js";
+import { checkLinks, citekeysMissing, CLUSTER_DEFAULTS, CLUSTER_PATHS, enrichLibrary, EXPORT_DIR, exportLibrary, isVault, LIBRARY_DIR, openLibrary, updateCitations, withApiKey } from "../index.js";
 
 /** Settings of a vault and their defaults. */
 export const SETTINGS = {
@@ -36,11 +36,16 @@ export class Backend {
   /** HTTP for OpenAlex, with the user's API key when one is set. */
   #http() { return withApiKey(fetchHttp(), this.settings.apiKey); }
 
-  get settings() { return { ...SETTINGS, ...(this.entry?.settings ?? {}) }; }
+  /** The vault's settings; the library folder is the one actually opened (e.g. "98 - Publications" in an older vault). */
+  get settings() {
+    const s = { ...SETTINGS, ...(this.entry?.settings ?? {}) };
+    if (this.library) s.libraryDir = this.library.dir;
+    return s;
+  }
 
   /** Is this folder a vault with a library folder? */
   static async isVault(handle, libraryDir = LIBRARY_DIR) {
-    return browserFolder(handle).isDirectory(libraryDir);
+    return isVault(browserFolder(handle), libraryDir);
   }
 
   /** Lets the user pick the vault folder (needs a click). */

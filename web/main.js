@@ -53,7 +53,7 @@ window.openVault = openVault;
 
 function explain(e) {
   console.error(e);
-  if (e?.name === "AbortError") return say("No folder was opened: the folder window was closed, or the browser refused the folder. Try again and choose the vault folder (the one that contains 98 - Publications).", "err");
+  if (e?.name === "AbortError") return say("No folder was opened: the folder window was closed, or the browser refused the folder. Try again and choose the vault folder (the one that contains 00 - Library).", "err");
   if (e?.name === "SecurityError") return say("The browser blocked the folder window. Click the button again (it must be a direct click).", "err");
   say(`${e?.name ?? "Error"}: ${e?.message ?? e}`, "err");
 }

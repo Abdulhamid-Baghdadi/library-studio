@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { memoryFolder } from "../../src/adapters/memory-folder.js";
-import { checkLinks, exportLibrary, openLibrary, runClusterDiscovery, updateCitations } from "../../src/index.js";
+import { checkLinks, exportLibrary, isVault, openLibrary, runClusterDiscovery, updateCitations } from "../../src/index.js";
 import { files, NOTES } from "./fixtures/library.js";
 
 const clock = { today: () => "2026-10-12", now: () => "2026-10-12 09:00", iso: () => "2026-10-12T09:00:00.000Z" };
@@ -11,7 +11,17 @@ test("openLibrary reads the publication notes and skips the others", async () =>
   const lib = await openLibrary(folder);
   assert.equal(lib.papers.length, NOTES.length);
   assert.deepEqual(lib.skipped, ["tags.md"]);
-  await assert.rejects(openLibrary(memoryFolder({ "other/a.md": "" })), /No folder "98 - Publications"/);
+  assert.equal(lib.dir, "98 - Publications", "an older vault keeps its library folder");
+  await assert.rejects(openLibrary(memoryFolder({ "other/a.md": "" })), /No folder "00 - Library"/);
+});
+
+test("openLibrary finds 00 - Library, also when the setting still names 98 - Publications", async () => {
+  const renamed = Object.fromEntries(Object.entries(files()).map(([p, v]) => [p.replace(/^98 - Publications\//, "00 - Library/"), v]));
+  const lib = await openLibrary(memoryFolder(renamed), { libraryDir: "98 - Publications" });
+  assert.equal(lib.dir, "00 - Library");
+  assert.equal(lib.papers.length, NOTES.length);
+  assert.equal(await isVault(memoryFolder(renamed)), true);
+  assert.equal(await isVault(memoryFolder({ "other/a.md": "" })), false);
 });
 
 test("runClusterDiscovery: dry run writes only the report; a full run writes hub notes and presets", async () => {

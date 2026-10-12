@@ -133,6 +133,6 @@ export function bibtexEntry(paper, key, { pdf = "" } = {}) {
 }
 
 export function libraryBibtex(papers, keys, { pdfOf = () => "", generated = "" } = {}) {
-  const head = `% BibTeX export of the publication library (${papers.length} entries)${generated ? `, generated ${generated}` : ""} by Library Studio.\n% Generated from the notes in 98 - Publications: edit the notes, not this file. Cite keys = the notes' citekey property.\n\n`;
+  const head = `% BibTeX export of the publication library (${papers.length} entries)${generated ? `, generated ${generated}` : ""} by Library Studio.\n% Generated from the publication notes of the library: edit the notes, not this file. Cite keys = the notes' citekey property.\n\n`;
   return head + [...papers].sort((a, b) => a.no - b.no).map(p => bibtexEntry(p, keys.get(p.stem), { pdf: pdfOf(p) })).join("\n");
 }
