@@ -10,7 +10,8 @@
 //   citations    counts of citations between library papers from OpenAlex; --apply writes the properties
 //                references / cited_by. --mailto <email> joins OpenAlex's polite pool.
 //   check-links  reports links between publication notes; --fix replaces them by plain-text references
-//   export       writes "96 - Library export/Library.xlsx" and "Library graph.html"
+//   export       writes "96 - Library export/Library.xlsx", "Library graph.html" and "98 - Publications/Library.bib";
+//                adds a citekey property to notes without one (--no-citekeys: leave the notes untouched)
 //
 //   --vault defaults to the current folder (it must contain "98 - Publications").
 import { readFile } from "node:fs/promises";
@@ -75,9 +76,10 @@ async function main() {
   }
   if (command === "export") {
     const template = await readFile(new URL("../web/graph-template.html", import.meta.url), "utf8");
-    const r = await exportLibrary(folder, library, { template, exportDir: opt("export-dir", undefined) });
+    const r = await exportLibrary(folder, library, { template, exportDir: opt("export-dir", undefined), clock, citekeys: !flag("no-citekeys") });
     console.log(`${r.papers} papers -> ${vault}\\${r.files[0]}`);
     console.log(`graph: ${r.nodes} nodes, ${r.edges} links -> ${vault}\\${r.files[1]}`);
+    console.log(`BibTeX: ${r.bibtex.entries} entries -> ${vault}\\${r.files[2]}` + (r.bibtex.citekeysWritten ? ` (citekey property added to ${r.bibtex.citekeysWritten} notes)` : ""));
     return 0;
   }
   console.error(`Unknown command "${command}". Commands: cluster, citations, check-links, export.`);

@@ -14,7 +14,7 @@ The library is a folder of publication notes (`98 - Publications/NNN - Year - Au
 | **Cluster discovery** | Groups the papers by what they are about (TF-IDF text similarity between mutual nearest neighbours, shared tags, wikilinks), finds communities with the Leiden algorithm repeated 100 times and combined by consensus clustering, checks robustness with a CPM density sweep, finds bridge papers (participation coefficient, betweenness), and compares the result with your concept maps (NMI, ARI). Interactive map and cluster cards on the page. | `Cluster discovery report.md`; unless it is a dry run: one hub note per cluster and the `[auto]` presets of the Graph Presets plugin (close Obsidian first). |
 | **Citations** | Which library papers cite which, from each paper's OpenAlex reference list (looked up by DOI). | The properties `references` and `cited_by` of every publication note. |
 | **Link check** | The vault rule: a publication note must not link to another publication note except in those two properties. Finds violations and can replace them by plain text ("Authors Year (No. NNN)"). | The notes, when fixing. |
-| **Export** | The library for colleagues who work in MS Office. | `96 - Library export/Library.xlsx` (papers, citations, concept maps) and `Library graph.html` (interactive network). |
+| **Export** | The library for colleagues who work in MS Office, and as BibTeX for reference managers and LaTeX/Pandoc. | `96 - Library export/Library.xlsx` (papers, citations, concept maps), `Library graph.html` (interactive network) and `98 - Publications/Library.bib` (one entry per note; cite keys = the notes' `citekey` property, added once and then kept). |
 
 Settings (⚙ in the sidebar, per vault): the library folder, where hub notes, report, presets and exports go, the vault's name for "Open in Obsidian" links, and an email for OpenAlex's polite pool.
 
@@ -39,8 +39,10 @@ The same engine runs from the command line, on a vault folder on disk:
 node bin/library-studio.js cluster --vault "<vault>" [--write] [--runs 100 --k 5 --algorithm leiden --quality modularity --resolution 1]
 node bin/library-studio.js citations --vault "<vault>" [--apply] [--mailto you@example.org]
 node bin/library-studio.js check-links --vault "<vault>" [--fix]
-node bin/library-studio.js export --vault "<vault>"
+node bin/library-studio.js export --vault "<vault>" [--no-citekeys]
 ```
+
+The BibTeX entry type follows `publication_type` (journal-article → `@article`, conference-paper → `@inproceedings`, book-chapter → `@incollection`, thesis → `@phdthesis`, reports → `@techreport`, standards and datasets → `@misc`); the `file` field points to the PDF in `PDFs/`. Author strings are read in the formats the notes use ("Forster, P.; Storelvmo, T.", "Piers Forster; Trude Storelvmo", "Baldwin & Clark", "Stone Wood & Crawford", "Hirtz et al."); organisations are kept whole. The cite key is the first author's surname plus the year (`ulrich1995`, `baldwin2000a`), or an organisation's initials (`iso2006`).
 
 ## Method (cluster discovery)
 

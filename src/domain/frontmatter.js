@@ -5,6 +5,7 @@
  *   parseFrontMatter(block)    → { key: value | [items] }  ('key: value', 'key: []', 'key:' + '  - item' lines)
  *   formatList(key, items)     → YAML lines for a list property of links ('key: []' when empty)
  *   replaceProps(text, {key: lines}) → note text with those properties replaced or added (before `category:` when present)
+ *   insertProp(text, key, value, after) → note text with a scalar property added after another one (unchanged when present)
  *   linkTarget(value)          → 'Note name' from '[[Note name|alias]]' (the value itself when it is not a link)
  *   WIKILINK                   → regex source for [[target#heading|alias]] with groups (target, alias); matches embeds too
  *
@@ -58,6 +59,24 @@ export function linkTarget(value) {
 export function formatList(key, items) {
   if (!items || !items.length) return `${key}: []\n`;
   return `${key}:\n` + items.map(s => `  - "[[${s}]]"\n`).join("");
+}
+
+/**
+ * Adds a scalar property after another one (or at the end of the front matter when `after` is missing).
+ * Does nothing when the property is already there. Line endings are kept.
+ */
+export function insertProp(text, key, value, after) {
+  const eol = text.includes("\r\n") ? "\r\n" : "\n";
+  const lf = text.replace(/\r\n/g, "\n");
+  const m = /^---\n([\s\S]*?)\n---/.exec(lf);
+  if (!m || new RegExp(`^${key}:`, "m").test(m[1])) return text;
+  const lines = m[1].split("\n");
+  const at = after ? lines.findIndex(l => l.startsWith(`${after}:`)) : -1;
+  let i = at < 0 ? lines.length : at + 1;
+  while (at >= 0 && i < lines.length && /^\s+-/.test(lines[i])) i++;      // after a list property: skip its items
+  lines.splice(i, 0, `${key}: ${value}`);
+  const out = lf.slice(0, m.index + 4) + lines.join("\n") + lf.slice(m.index + 4 + m[1].length);
+  return out.replace(/\n/g, eol);
 }
 
 /** Replace (or add) whole properties. `lines` maps a key to the YAML text of that property, ending in \n. */

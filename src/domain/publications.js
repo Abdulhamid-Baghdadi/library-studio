@@ -13,6 +13,7 @@
  *   categories  concept maps linked in `category` (link targets)
  *   tags        lower-cased `tags`
  *   refs, citedBy   note names in `references` / `cited_by`
+ *   citekey     the `citekey` property ("" until the BibTeX export assigns one)
  *   links       Set of note names linked from the body
  *   abstract, why   the "Abstract" and "Why is this paper important?" sections
  * @module domain/publications
@@ -46,6 +47,7 @@ export function readPublication(stem, text) {
     status: scalar(props.status),
     importance: scalar(props.importance),
     doi: scalar(props.doi),
+    citekey: scalar(props.citekey),
     pdf: linkTarget(scalar(props.pdf)),
     categories: asList(props.category).map(c => linkTarget(c)).filter(Boolean),
     tags: asList(props.tags).map(t => String(t).toLowerCase()),

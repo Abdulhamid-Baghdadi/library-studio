@@ -4,7 +4,7 @@ import { readPublication } from "../../../src/domain/publications.js";
 const note = (index, year, cite, title, { cat, tags = [], abstract, doi = "", links = [] }) => {
   const stem = `${String(index).padStart(3, "0")} - ${year} - ${cite} - ${title}`;
   const text = [
-    "---", "type: publication", `index: ${index}`, `authors: ${cite}`, `year: ${year}`, `title: ${title}`, `journal: J${index % 3}`,
+    "---", "type: publication", "publication_type: journal-article", `index: ${index}`, `authors: ${cite}`, `year: ${year}`, `title: ${title}`, `journal: J${index % 3}`,
     "publication_class: A1", `doi: ${doi}`, `pdf: "[[${stem}.pdf]]"`, "status: read", "category:", ...cat.map(c => `  - "[[${c}]]"`),
     "tags:", ...tags.map(t => `  - ${t}`), "references: []", "cited_by: []", "---", "",
     `# ${title}`, "", "## Abstract", "", abstract, "", "## Why is this paper important?", "", `Because ${title.toLowerCase()} matters. ${links.map(l => `[[${l}]]`).join(" ")}`, "",

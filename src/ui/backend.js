@@ -6,7 +6,7 @@
 import { browserFolder, requestAccess } from "../adapters/browser-folder.js";
 import { forgetVault, recentVaults, rememberVault } from "../adapters/browser-store.js";
 import { fetchHttp } from "../adapters/fetch-http.js";
-import { checkLinks, CLUSTER_DEFAULTS, CLUSTER_PATHS, EXPORT_DIR, exportLibrary, LIBRARY_DIR, openLibrary, updateCitations } from "../index.js";
+import { checkLinks, citekeysMissing, CLUSTER_DEFAULTS, CLUSTER_PATHS, EXPORT_DIR, exportLibrary, LIBRARY_DIR, openLibrary, updateCitations } from "../index.js";
 
 /** Settings of a vault and their defaults. */
 export const SETTINGS = {
@@ -126,9 +126,14 @@ export class Backend {
     return r;
   }
 
+  /** Notes that would get a `citekey` property at the next export. */
+  get citekeysMissing() { return citekeysMissing(this.library); }
+
   async export() {
     this.#template ??= await (await fetch(this.templateUrl)).text();
-    return exportLibrary(this.folder, this.library, { template: this.#template, exportDir: this.settings.exportDir });
+    const r = await exportLibrary(this.folder, this.library, { template: this.#template, exportDir: this.settings.exportDir, clock: clock() });
+    if (r.bibtex.citekeysWritten) await this.reload();
+    return r;
   }
 
   /** Reads a file of the vault for the browser to download or show. */

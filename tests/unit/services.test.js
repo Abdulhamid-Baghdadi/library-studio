@@ -93,7 +93,13 @@ test("exportLibrary writes the workbook and the graph page", async () => {
   const folder = memoryFolder({ ...files(), [`98 - Publications/PDFs/${NOTES[0].stem}.pdf`]: new Uint8Array(1) });
   const lib = await openLibrary(folder);
   const r = await exportLibrary(folder, lib, { template: "<script>const DATA = /*DATA*/null;</script>" });
-  assert.deepEqual(r.files, ["96 - Library export/Library.xlsx", "96 - Library export/Library graph.html"]);
+  assert.deepEqual(r.files, ["96 - Library export/Library.xlsx", "96 - Library export/Library graph.html", "98 - Publications/Library.bib"]);
+  assert.deepEqual(r.bibtex, { entries: 8, citekeysWritten: 8 });
+  const bib = await folder.readText("98 - Publications/Library.bib");
+  assert.ok(bib.includes("@article{steward1981,") && bib.includes("file     = {:PDFs/" + NOTES[0].stem + ".pdf:PDF}"));
+  assert.ok((await folder.readText(`98 - Publications/${NOTES[0].stem}.md`)).includes("\ndoi: 10.1/a\ncitekey: steward1981\n"));
+  const again = await exportLibrary(folder, await openLibrary(folder), { template: "<script>const DATA = /*DATA*/null;</script>" });
+  assert.equal(again.bibtex.citekeysWritten, 0);
   assert.equal(r.papers, 8);
   assert.equal(r.nodes, 8 + 3);
   const page = await folder.readText("96 - Library export/Library graph.html");

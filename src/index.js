@@ -13,6 +13,7 @@ export { citationGraph, normalizeDoi, withCitations } from "./domain/citations.j
 export { fixLinks, forbiddenLinks, publicationIndex } from "./domain/link-check.js";
 export { CLASS_NAMES, EXPORT_DIR, GRAPH_PAGE, graphData, graphPage, WORKBOOK, workbook } from "./domain/export.js";
 export { xlsx } from "./domain/xlsx.js";
+export { assignCitekeys, bibtexEntry, citekeyFor, libraryBibtex, parseAuthors } from "./domain/bibtex.js";
 export { normalizeNewlines } from "./domain/text-rules.js";
 
 // services: use cases
@@ -20,7 +21,7 @@ export { isVault, openLibrary } from "./services/library.js";
 export { PATHS as CLUSTER_PATHS, runClusterDiscovery } from "./services/cluster-discovery.js";
 export { updateCitations } from "./services/citations.js";
 export { checkLinks } from "./services/link-check.js";
-export { exportLibrary } from "./services/export.js";
+export { BIBTEX, citekeysMissing, exportLibrary } from "./services/export.js";
 
 // adapters
 export { memoryFolder } from "./adapters/memory-folder.js";
