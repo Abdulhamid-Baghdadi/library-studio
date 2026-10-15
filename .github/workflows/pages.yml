@@ -32,7 +32,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.repository == 'Robotat-tube/library-studio'
+    if: github.repository == 'Abdulhamid-Baghdadi/library-studio'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

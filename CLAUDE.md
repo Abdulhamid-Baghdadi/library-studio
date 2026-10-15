@@ -28,4 +28,4 @@ A browser app for a publication library kept as Obsidian notes (`00 - Library/NN
 - Write JavaScript with the Write/Edit tools, not shell heredocs. Never put U+2028/U+2029 or other line separators literally into a regex; write the escape `\u2028` inside a string passed to `new RegExp`.
 - Keep the vault format stable: note names, the property names `references` / `cited_by`, the hub note and report layout, the `[auto] ` preset names. Line endings of existing notes are kept (CRLF on Windows).
 - The analysis must stay deterministic for a seed; `tests/unit/community.test.js` and `graph-metrics.test.js` compare with the reference formulas.
-- Hosting: GitHub Pages from Robotat-tube/library-studio (`.github/workflows/pages.yml`, on every push to main).
+- Hosting: GitHub Pages from Abdulhamid-Baghdadi/library-studio (`.github/workflows/pages.yml`, on every push to main).
