@@ -2,7 +2,7 @@
 
 **A workbench for a publication library kept as Obsidian notes. It runs in your browser and works directly on the vault folder on your own PC.**
 
-**[▶ Open it in your browser](https://robotat-tube.github.io/library-studio/)** · Chrome or Edge on a computer · or run it locally with `Start Library Studio.cmd`
+**[▶ Open it in your browser](https://abdulhamid-baghdadi.github.io/library-studio/)** · Chrome or Edge on a computer · or run it locally with `Start Library Studio.cmd`
 
 The library is a folder of publication notes (`00 - Library/NNN - Year - Authors - Title.md`, `type: publication`). Library Studio reads those notes and writes its results back into the vault; nothing is uploaded, there is no account, and everything it writes is a plain Markdown note, a JSON file or an export file.
 
@@ -21,7 +21,7 @@ Settings (⚙ in the sidebar, per vault): the library folder, where hub notes, r
 
 ## Getting started
 
-1. Open **https://robotat-tube.github.io/library-studio/** in **Chrome or Edge** on a computer (or start it locally, see below).
+1. Open **https://abdulhamid-baghdadi.github.io/library-studio/** in **Chrome or Edge** on a computer (or start it locally, see below).
 2. **Open a vault folder…** and choose the vault (the folder that contains `00 - Library`). The browser asks once per visit before the app may read and edit files in it.
 3. Pick a tool in the sidebar. Every page says where its results are saved.
 
