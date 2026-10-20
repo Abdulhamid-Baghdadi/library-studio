@@ -1,6 +1,7 @@
 /**
  * The vault rule for publication notes: a publication note must not contain an Obsidian link ([[…]] or ![[…]])
- * to another publication note, except in the citation properties `references`, `references_pdf` and `cited_by`.
+ * to another publication note, except in the generated citation property `cites` (and `references`,
+ * `references_pdf`, `cited_by` of older vaults) in the front matter.
  *
  *   publicationIndex(papers)          Map note name → `index` ("" when missing), for every publication note
  *   forbiddenLinks(text, stem, pubs)  the offending links in one note: [{ target, alias, start, end }]
@@ -9,7 +10,8 @@
  * @module domain/link-check
  */
 
-const CITATION_PROPS = /^(?:references|references_pdf|cited_by):[ \t]*\r?\n(?:[ \t]+-.*\r?\n?)*/gm;
+const FRONT_MATTER = /^---\r?\n[\s\S]*?\r?\n---/;
+const CITATION_PROPS = /^(?:cites|references|references_pdf|cited_by):[^\r\n]*(?:\r?\n[ \t]+-.*)*/gm;
 const LINK = /!?\[\[([^\]|#]+?)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]/g;
 
 /** @param {Iterable<{stem: string, index: string, no: number}>} papers */
@@ -21,8 +23,11 @@ export function publicationIndex(papers) {
 
 const targetOf = t => (t.trim().toLowerCase().endsWith(".md") ? t.trim().slice(0, -3) : t.trim());
 
+/** Where links are allowed: the citation properties, in the front matter only. */
 function allowedRanges(text) {
-  return [...text.matchAll(CITATION_PROPS)].map(m => [m.index, m.index + m[0].length]);
+  const fm = FRONT_MATTER.exec(text);
+  if (!fm) return [];
+  return [...fm[0].matchAll(CITATION_PROPS)].map(m => [m.index, m.index + m[0].length]);
 }
 
 /** @param {Map<string, string>} pubs from publicationIndex */

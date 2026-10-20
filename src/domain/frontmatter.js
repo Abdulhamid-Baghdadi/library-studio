@@ -5,9 +5,10 @@
  *   parseFrontMatter(block)    → { key: value | [items] }  ('key: value', 'key: []', 'key:' + '  - item' lines)
  *   formatList(key, items)     → YAML lines for a list property of links ('key: []' when empty)
  *   replaceProps(text, {key: lines}) → note text with those properties replaced or added (before `category:` when present)
- *   insertProp(text, key, value, after) → note text with a scalar property added after another one (unchanged when present)
- *   setScalar(text, key, value, after)  → the property's value replaced (also an empty one), or the property added
- *   appendListItem(text, key, item, after) → an item added to a list property (created when missing; no duplicates)
+ *   insertProp(text, key, value, place) → note text with a scalar property added (unchanged when present); place:
+ *                                 "key" (after it), ["key1", "key2"] (after the first present), { before: [keys] }
+ *   setScalar(text, key, value, place)  → the property's value replaced (also an empty one), or the property added
+ *   appendListItem(text, key, item, place) → an item added to a list property (created when missing; no duplicates)
  *   yamlScalar(value)          → the value as Obsidian would write it (JSON-quoted when YAML needs it)
  *   linkTarget(value)          → 'Note name' from '[[Note name|alias]]' (the value itself when it is not a link)
  *   WIKILINK                   → regex source for [[target#heading|alias]] with groups (target, alias); matches embeds too
@@ -65,19 +66,35 @@ export function formatList(key, items) {
 }
 
 /**
- * Adds a scalar property after another one (or at the end of the front matter when `after` is missing).
- * Does nothing when the property is already there. Line endings are kept.
+ * The line index where a new property goes. `place` is a key (after it), a list of keys (after the first of them
+ * the note has) or { before: [keys] } (before the first of those properties in the note). At the end of the front
+ * matter when the note has none of them.
  */
-export function insertProp(text, key, value, after) {
+function placeIndex(lines, place) {
+  const keyAt = k => lines.findIndex(l => l.startsWith(`${k}:`));
+  if (place && Array.isArray(place.before)) {
+    const found = place.before.map(keyAt).filter(i => i >= 0);
+    return found.length ? Math.min(...found) : lines.length;
+  }
+  const at = [place ?? []].flat().map(keyAt).find(i => i >= 0) ?? -1;
+  if (at < 0) return lines.length;
+  let i = at + 1;
+  while (i < lines.length && /^\s+-/.test(lines[i])) i++;      // after a list property: skip its items
+  return i;
+}
+
+/**
+ * Adds a scalar property at `place` (see placeIndex: after a key, after the first of several keys, or before
+ * some keys; at the end of the front matter otherwise). Does nothing when the property is already there.
+ * Line endings are kept.
+ */
+export function insertProp(text, key, value, place) {
   const eol = text.includes("\r\n") ? "\r\n" : "\n";
   const lf = text.replace(/\r\n/g, "\n");
   const m = /^---\n([\s\S]*?)\n---/.exec(lf);
   if (!m || new RegExp(`^${key}:`, "m").test(m[1])) return text;
   const lines = m[1].split("\n");
-  const at = after ? lines.findIndex(l => l.startsWith(`${after}:`)) : -1;
-  let i = at < 0 ? lines.length : at + 1;
-  while (at >= 0 && i < lines.length && /^\s+-/.test(lines[i])) i++;      // after a list property: skip its items
-  lines.splice(i, 0, `${key}: ${value}`);
+  lines.splice(placeIndex(lines, place), 0, `${key}: ${value}`);
   const out = lf.slice(0, m.index + 4) + lines.join("\n") + lf.slice(m.index + 4 + m[1].length);
   return out.replace(/\n/g, eol);
 }
@@ -91,7 +108,7 @@ export const yamlScalar = v => {
 
 /**
  * Sets a scalar property: replaces its value when the property exists (also when empty), else adds it
- * after `after` (insertProp). Line endings are kept.
+ * at `after` (insertProp). Line endings are kept.
  */
 export function setScalar(text, key, value, after) {
   const eol = text.includes("\r\n") ? "\r\n" : "\n";
@@ -104,7 +121,7 @@ export function setScalar(text, key, value, after) {
   return (lf.slice(0, m.index + 4) + block + lf.slice(m.index + 4 + m[1].length)).replace(/\n/g, eol);
 }
 
-/** Adds an item to a list property (created when missing, appended after `after`); a duplicate item is not added. */
+/** Adds an item to a list property (created at `after` when missing, see insertProp); a duplicate item is not added. */
 export function appendListItem(text, key, item, after) {
   const eol = text.includes("\r\n") ? "\r\n" : "\n";
   const lf = text.replace(/\r\n/g, "\n");
@@ -116,10 +133,7 @@ export function appendListItem(text, key, item, after) {
   let block;
   if (!found) {
     const lines = m[1].split("\n");
-    const at = after ? lines.findIndex(l => l.startsWith(`${after}:`)) : -1;
-    let i = at < 0 ? lines.length : at + 1;
-    while (at >= 0 && i < lines.length && /^\s+-/.test(lines[i])) i++;
-    lines.splice(i, 0, `${key}:`, line);
+    lines.splice(placeIndex(lines, after), 0, `${key}:`, line);
     block = lines.join("\n");
   } else {
     const items = found[1].split("\n").filter(Boolean).map(l => unquote(l.replace(/^\s+-\s*/, "")));

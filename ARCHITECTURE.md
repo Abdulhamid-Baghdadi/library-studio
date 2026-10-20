@@ -9,7 +9,7 @@ Library Studio is a browser app whose data is an Obsidian vault folder on the us
                              ▼
 ┌─ adapters ─┐   ┌──────── services ────────┐
 │ node-folder│◄──│ use cases: open library, │
-│ memory     │   │ cluster, citations, links,│
+│ memory     │   │ cluster, enrich, links,   │
 │ browser    │   │ export                    │
 └─────┬──────┘   └─────┬─────────────┬──────┘
       │                ▼             ▼
@@ -23,9 +23,9 @@ Library Studio is a browser app whose data is an Obsidian vault folder on the us
 
 | Layer | Folder | Contains | May import |
 |---|---|---|---|
-| **domain** | `src/domain/` | Pure functions: note front matter, publication notes, the clustering text pipeline (TF-IDF), the similarity graph, the graph algorithms (Leiden, Louvain, consensus, betweenness, roles, NMI/ARI, layouts), the analysis, the generated notes and presets, citations, the link rule, the export (xlsx and zip writers). No I/O, no clock, no platform APIs; randomness only through `random.js` with a seed. | domain |
+| **domain** | `src/domain/` | Pure functions: note front matter, publication notes, the clustering text pipeline (TF-IDF), the similarity graph, the graph algorithms (Leiden, Louvain, consensus, betweenness, roles, NMI/ARI, layouts), the analysis, the generated notes and presets, OpenAlex requests and enrichment, the link rule, the export (xlsx and zip writers). No I/O, no clock, no platform APIs; randomness only through `random.js` with a seed. | domain |
 | **ports** | `src/ports/` | Interfaces the services need from outside: `Folder` (the vault), `Http` (OpenAlex). Types only. | domain, ports |
-| **services** | `src/services/` | Use cases: open the library, run cluster discovery and write its results, update citations, check links, export. Receive their ports as parameters. | domain, ports, services |
+| **services** | `src/services/` | Use cases: open the library, run cluster discovery and write its results, enrich from OpenAlex, check links, export. Receive their ports as parameters. | domain, ports, services |
 | **adapters** | `src/adapters/` | The ports for each platform: Node file system (command line, tests), in-memory (tests), browser File System Access API, `fetch`, IndexedDB store of opened vaults. | domain, ports, adapters |
 | **ui** | `src/ui/` | `backend.js`: the open vault, its settings, one method per tool; runs the cluster analysis in a worker (`web/cluster-worker.js`). The page itself is `web/` (`main.js` start screen and shell, `pages/` one module per tool, `ui.js` DOM helpers). | the public API (`src/index.js`), adapters |
 
@@ -33,7 +33,7 @@ Library Studio is a browser app whose data is an Obsidian vault folder on the us
 
 ## Rules
 
-- **The vault is the contract.** File names, note formats and the presets file stay as the Python tools wrote them, so existing vaults keep working. Text is read and written as it is: line endings are kept (the notes are CRLF on Windows).
+- **The vault is the contract.** File names, note formats and the presets file follow the vault's rules (its `CLAUDE.md` and `00 - Library/Library schema.md`); the citation property `cites` is written by Scoping Review Workbench and only read here. Older layouts and property names are still read, so existing vaults keep working. Text is read and written as it is: line endings are kept (the notes are CRLF on Windows).
 - **Effects at the edges.** Dates, ids and file access are passed in; domain functions return values instead of writing. The analysis is a pure function of the notes and the settings (seeded randomness), so a run can be reproduced.
 - **One module, one concern**, named after what it is about, with its API documented at the top.
 - **Public API.** Code outside `src/` (web, bin, tests of the API) imports from `src/index.js`.

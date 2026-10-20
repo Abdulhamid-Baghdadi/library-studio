@@ -1,11 +1,11 @@
-// Link check: a publication note must not link to another publication note, except in references and cited_by.
+// Link check: a publication note must not link to another publication note, except in the citation property cites.
 import { btn, busy, card, confirmBox, h, savedIn, toast } from "../ui.js";
 
 let LAST = null;
 
 export const links = {
   id: "links", title: "Link check", icon: "🧷",
-  desc: "The vault rule: publication notes refer to each other in plain text, e.g. “Ulrich 1995 (No. 005)”; Obsidian links between them are allowed only in references and cited_by.",
+  desc: "The vault rule: publication notes refer to each other in plain text, e.g. “Ulrich 1995 (No. 005)”; Obsidian links between them are allowed only in the generated property cites.",
   render(ctx) {
     const { backend } = ctx;
     const s = backend.settings;
@@ -23,7 +23,8 @@ export const links = {
     return h("div", {},
       h("div", { class: "grid2" },
         card("Why", null, h("ul", { class: "interp" },
-          h("li", {}, "Paper-to-paper links only in the two citation properties keep the graph view readable: the Extended Graph plugin hides those, and every other link to a paper means a concept map, a project note or a definition."),
+          h("li", {}, "Paper-to-paper links only in ", h("code", {}, "cites"), " keep the graph view readable: the Extended Graph plugin can hide those, and every other link to a paper means a concept map, a project note or a definition."),
+          h("li", {}, h("code", {}, "cites"), " is written by Scoping Review Workbench and never changed here (older vaults: also ", h("code", {}, "references"), ", ", h("code", {}, "references_pdf"), ", ", h("code", {}, "cited_by"), ")."),
           h("li", {}, "Allowed in a publication note: its own PDF, concept maps in ", h("code", {}, "category"), ", and other non-publication notes."),
           h("li", {}, "Fixing replaces a link by its alias, or by “Authors Year (No. NNN)”."))),
         card("Run", null, h("div", { class: "row" }, checkBtn, fixBtn),

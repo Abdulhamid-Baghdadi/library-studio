@@ -7,21 +7,21 @@
 //                graph presets (close Obsidian first). Options: --runs N --k N --algorithm leiden|louvain
 //                --quality modularity|cpm --resolution x --gamma x --w-text x --w-tag x --w-link x
 //                --threshold x --bridge-p x --seed N --hub-dir <path> --report-dir <path> --presets <path>
-//   citations    counts of citations between library papers from OpenAlex; --apply writes the properties
-//                references / cited_by. --mailto <email> joins OpenAlex's polite pool.
 //   enrich       fills empty properties (authors, journal, year, url, abstract) from OpenAlex, proposes suggested_doi /
 //                suggested_category, writes Gaps.md, Candidates.md and References.json in the library folder.
 //                Without --apply: a dry run that only prints what would change. --mailto <email> for the polite pool.
-//   check-links  reports links between publication notes; --fix replaces them by plain-text references
+//   check-links  reports links between publication notes outside `cites`; --fix replaces them by plain-text references
 //   export       writes "96 - Library export/Library.xlsx", "Library graph.html" and "00 - Library/Library.bib";
 //                adds a citekey property to notes without one (--no-citekeys: leave the notes untouched)
 //
-//   --vault defaults to the current folder (it must contain "00 - Library", or the older "98 - Publications").
+//   --vault defaults to the current folder. The notes are looked up in "00 - Library/Publication Summary", then
+//   "00 - Library" and "98 - Publications"; --library "<folder>" names another. The citation property `cites` is
+//   written by Scoping Review Workbench (Report → Check citations, or its bin/check-citations.js).
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { nodeFolder } from "../src/adapters/node-folder.js";
 import { fetchHttp } from "../src/adapters/fetch-http.js";
-import { checkLinks, CLUSTER_STEPS, enrichLibrary, exportLibrary, openLibrary, runClusterDiscovery, updateCitations, withApiKey } from "../src/index.js";
+import { checkLinks, CLUSTER_STEPS, enrichLibrary, exportLibrary, openLibrary, runClusterDiscovery, withApiKey } from "../src/index.js";
 
 const args = process.argv.slice(2);
 const command = args.find(a => !a.startsWith("--"));
@@ -37,7 +37,15 @@ const clock = {
 };
 
 async function main() {
-  if (!command || flag("help")) { console.log((await readFile(new URL(import.meta.url), "utf8")).split("\n").slice(1, 21).map(l => l.replace(/^\/\/ ?/, "")).join("\n")); return 0; }
+  if (!command || flag("help")) {
+    const lines = (await readFile(new URL(import.meta.url), "utf8")).split(/\r?\n/).slice(1);
+    console.log(lines.slice(0, lines.findIndex(l => !l.startsWith("//"))).map(l => l.replace(/^\/\/ ?/, "")).join("\n"));   // the comment at the top
+    return 0;
+  }
+  if (command === "citations") {
+    console.error("The citations moved to Scoping Review Workbench, which writes the property `cites`: Report → Check citations,\nor from the vault folder: node \"<Scoping Review Workbench>/bin/check-citations.js\" [--openalex] [--write].");
+    return 2;
+  }
   const vault = resolve(opt("vault", process.cwd()));
   const folder = nodeFolder(vault);
   const library = await openLibrary(folder, { libraryDir: opt("library") });
@@ -64,15 +72,6 @@ async function main() {
     if (flag("json")) console.log("@@RESULT " + JSON.stringify(r));
     return 0;
   }
-  if (command === "citations") {
-    const r = await updateCitations(folder, library, http(), { apply: flag("apply"), mailto: opt("mailto", ""), onProgress: m => console.log(m) });
-    console.log(`${r.publications} publications, ${r.found} found in OpenAlex, ${r.links} citations between library papers`);
-    console.log(`Not in OpenAlex (no DOI or not indexed): ${r.missing}`);
-    console.log("Most cited within the library:");
-    for (const m of r.mostCited) console.log(`  ${String(m.count).padStart(3)}  ${m.stem.slice(0, 80)}`);
-    console.log(r.apply ? `written (${r.written} notes changed)` : "(dry run: add --apply to write)");
-    return 0;
-  }
   if (command === "enrich") {
     const r = await enrichLibrary(folder, library, http(), { apply: flag("apply"), mailto: opt("mailto", ""), clock, onProgress: m => console.log(m) });
     console.log(`${r.matched} of ${r.papers} papers found in OpenAlex by DOI`);
@@ -97,7 +96,7 @@ async function main() {
     console.log(`BibTeX: ${r.bibtex.entries} entries -> ${vault}\\${r.files[2]}` + (r.bibtex.citekeysWritten ? ` (citekey property added to ${r.bibtex.citekeysWritten} notes)` : ""));
     return 0;
   }
-  console.error(`Unknown command "${command}". Commands: cluster, citations, enrich, check-links, export.`);
+  console.error(`Unknown command "${command}". Commands: cluster, enrich, check-links, export.`);
   return 2;
 }
 

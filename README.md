@@ -4,7 +4,7 @@
 
 **[▶ Open it in your browser](https://abdulhamid-baghdadi.github.io/library-studio/)** · Chrome or Edge on a computer · or run it locally with `Start Library Studio.cmd`
 
-The library is a folder of publication notes (`00 - Library/NNN - Year - Authors - Title.md`, `type: publication`). Library Studio reads those notes and writes its results back into the vault; nothing is uploaded, there is no account, and everything it writes is a plain Markdown note, a JSON file or an export file.
+The library is a folder of publication notes (`00 - Library/Publication Summary/NNN - Year - Authors - Title.md`, `type: publication`), with the PDFs in `00 - Library/PDFs` (older layouts with the notes directly in `00 - Library` or in `98 - Publications` are still found). Library Studio reads those notes and writes its results back into the vault; nothing is uploaded, there is no account, and everything it writes is a plain Markdown note, a JSON file or an export file.
 
 ## The tools
 
@@ -12,10 +12,11 @@ The library is a folder of publication notes (`00 - Library/NNN - Year - Authors
 |---|---|---|
 | **Library** | What is in the library: papers per concept map, reading status, tags; the way into each tool. | — |
 | **Cluster discovery** | Groups the papers by what they are about (TF-IDF text similarity between mutual nearest neighbours, shared tags, wikilinks), finds communities with the Leiden algorithm repeated 100 times and combined by consensus clustering, checks robustness with a CPM density sweep, finds bridge papers (participation coefficient, betweenness), and compares the result with your concept maps (NMI, ARI). Interactive map and cluster cards on the page. | `Cluster discovery report.md`; unless it is a dry run: one hub note per cluster and the `[auto]` presets of the Graph Presets plugin (close Obsidian first). |
-| **Citations** | Which library papers cite which, from each paper's OpenAlex reference list (looked up by DOI). | The properties `references` and `cited_by` of every publication note. |
-| **Enrich** | Fills *empty* properties from OpenAlex (full author names, journal, year, URL, the Abstract section), proposes what it is unsure of (`suggested_doi` by exact title and year, `suggested_category` = nearest concept map by content), reports differences between note and OpenAlex, and lists what no database can fill. Existing values are never changed. | The notes (only empty properties, `suggested_*`, `enriched_by`); `00 - Library/Gaps.md`, `Candidates.md` (papers cited by 3+ library papers, not yet in the library), `References.json` (full reference lists). |
-| **Link check** | The vault rule: a publication note must not link to another publication note except in those two properties. Finds violations and can replace them by plain text ("Authors Year (No. NNN)"). | The notes, when fixing. |
-| **Export** | The library for colleagues who work in MS Office, and as BibTeX for reference managers and LaTeX/Pandoc. | `96 - Library export/Library.xlsx` (papers, citations, concept maps), `Library graph.html` (interactive network) and `00 - Library/Library.bib` (one entry per note; cite keys = the notes' `citekey` property, added once and then kept). |
+| **Enrich** | Fills *empty* properties from OpenAlex (full author names, journal, year, URL, the Abstract section), proposes what it is unsure of (`suggested_doi` by exact title and year, `suggested_category` = nearest concept map by content), reports differences between note and OpenAlex, and lists what no database can fill. Existing values are never changed. | The notes (only empty properties, `suggested_*`, `enriched_by`); in the notes' folder: `Gaps.md`, `Candidates.md` (papers cited by 3+ library papers, not yet in the library), `References.json` (full reference lists). |
+| **Link check** | The vault rule: a publication note must not link to another publication note except in the generated property `cites`. Finds violations and can replace them by plain text ("Authors Year (No. NNN)"). | The notes, when fixing. |
+| **Export** | The library for colleagues who work in MS Office, and as BibTeX for reference managers and LaTeX/Pandoc. | `96 - Library export/Library.xlsx` (papers, citations between library papers, concept maps), `Library graph.html` (interactive network) and `00 - Library/Library.bib` (one entry per note; cite keys = the notes' `citekey` property, added once and then kept). |
+
+**Citations** between papers are written by [Scoping Review Workbench](https://abdulhamid-baghdadi.github.io/scoping-review-workbench/) (Report → Check citations): the property `cites` lists every work a paper cites, as a link when the work is in the library, else its DOI or OpenAlex id. Library Studio reads it for the export (who cites whom, "cited by" = the library papers whose `cites` name a paper) and never changes it. Its own Citations tool, which wrote `references` / `cited_by`, was removed in October 2026.
 
 Settings (⚙ in the sidebar, per vault): the library folder, where hub notes, report, presets and exports go, the vault's name for "Open in Obsidian" links, and an email for OpenAlex's polite pool.
 
@@ -38,7 +39,6 @@ The same engine runs from the command line, on a vault folder on disk:
 
 ```
 node bin/library-studio.js cluster --vault "<vault>" [--write] [--runs 100 --k 5 --algorithm leiden --quality modularity --resolution 1]
-node bin/library-studio.js citations --vault "<vault>" [--apply] [--mailto you@example.org]
 node bin/library-studio.js enrich --vault "<vault>" [--apply] [--mailto you@example.org] [--api-key <key>]
 node bin/library-studio.js check-links --vault "<vault>" [--fix]
 node bin/library-studio.js export --vault "<vault>" [--no-citekeys]
@@ -48,7 +48,7 @@ The BibTeX entry type follows `publication_type` (journal-article → `@article`
 
 ## Algorithm first, Claude for the gaps
 
-Everything a database knows comes from OpenAlex, deterministically and repeatably. What it cannot know (papers without a DOI, reference lists OpenAlex lacks, standards, reports, old proceedings) is listed in `Gaps.md`, and only that list goes to a reading pass: the Claude skill [`library-fill-gaps`](.claude/skills/library-fill-gaps/SKILL.md) reads those PDFs and writes verbatim abstracts, full author names and `references_pdf` (library papers found in the PDF's reference list), each note marked `enriched_by: pdf (Claude <date>)`. The citations tool counts `references_pdf` in `cited_by`, and the link check allows it. You review proposals and differences in `Gaps.md`.
+Everything a database knows comes from OpenAlex, deterministically and repeatably. What it cannot know (papers without a DOI, reference lists OpenAlex lacks, standards, reports, old proceedings) is listed in `Gaps.md`, and only that list goes to a reading pass: the Claude skill [`library-fill-gaps`](.claude/skills/library-fill-gaps/SKILL.md) reads those PDFs and writes verbatim abstracts and full author names and, when `cites` is empty, the PDF's reference list into `cites` (as the Workbench writes it), each note marked `enriched_by: pdf (Claude <date>)`. You review proposals and differences in `Gaps.md`.
 
 OpenAlex has a free daily budget (about 1000 credits; a lookup of 50 DOIs costs 1, a title search 10). When it runs out the tools stop at once with a message and keep what they have. A free API key from openalex.org (Settings, or `--api-key` / `OPENALEX_API_KEY` on the command line) raises it.
 

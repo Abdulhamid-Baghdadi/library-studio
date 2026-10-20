@@ -82,6 +82,16 @@ test("applyPlan writes fills, suggestions, abstract and provenance; keeps CRLF; 
   assert.equal(again, out);                                                 // nothing left to fill: no second provenance line
 });
 
+test("applyPlan keeps the vault's property order: url after citekey, enriched_by before the tools' records and cites", () => {
+  const note = ["---", "type: publication", "index: 5", "authors: Karl T. Ulrich", "year: 1995", "title: The Role of Product Architecture", "doi: 10.1016/x",
+    "citekey: ulrich1995", "tags:", "  - a", "doi_alternate: 10.2/y", "included_in:", "  - Review 1", "cites:", '  - "10.1/z"', "---", "", "## Abstract", "", "Text.", ""].join("\n");
+  const p = readPublication("005 - 1995 - Ulrich - The Role", note);
+  const out = applyPlan(note, planPaper(p, work({ journal: "", referenced: [] }), null, null), { today: "2026-10-20" });
+  assert.ok(out.includes("\ncitekey: ulrich1995\nurl: https://doi.org/10.1016/x\ntags:"));
+  assert.ok(out.includes("\ndoi_alternate: 10.2/y\nenriched_by:\n  - openalex 2026-10-20\nincluded_in:"));
+  assert.ok(!planPaper(p, work({ referenced: [] }), null, null).gaps.includes("OpenAlex has no reference list for it"), "cites already filled");
+});
+
 test("withAbstract only fills an empty heading", () => {
   assert.equal(withAbstract("## Abstract\n\n## Next\n", "Text"), "## Abstract\n\nText\n\n## Next\n");
   assert.equal(withAbstract("## Abstract\n\nExisting\n\n## Next\n", "Text"), "## Abstract\n\nExisting\n\n## Next\n");

@@ -1,7 +1,7 @@
 {
   "name": "Library Studio",
   "short_name": "Library Studio",
-  "description": "Workbench for a publication library kept as Obsidian notes: cluster discovery, citations, link rule, export. The vault stays on your own PC.",
+  "description": "Workbench for a publication library kept as Obsidian notes: cluster discovery, enrichment, link rule, export. The vault stays on your own PC.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -1,6 +1,8 @@
 # Library Studio — notes for Claude
 
-A browser app for a publication library kept as Obsidian notes (`00 - Library/NNN - Year - Authors - Title.md`, `type: publication`). It reads and writes the vault folder through the File System Access API; nothing is uploaded. Tools: cluster discovery, citations (OpenAlex), enrich (OpenAlex metadata, proposals, Gaps.md / Candidates.md / References.json), the publication-link rule, export (xlsx + graph page + Library.bib). The Claude skill `.claude/skills/library-fill-gaps` does the reading pass over Gaps.md. It replaced the Python scripts of `95 - Tools` in the vault `Modular_Electronics_Obsidian v1`.
+A browser app for a publication library kept as Obsidian notes (`00 - Library/Publication Summary/NNN - Year - Authors - Title.md`, `type: publication`; PDFs and `Library.bib` in `00 - Library`; older vaults kept the notes in `00 - Library` or `98 - Publications`, still found). It reads and writes the vault folder through the File System Access API; nothing is uploaded. Tools: cluster discovery, enrich (OpenAlex metadata, proposals, Gaps.md / Candidates.md / References.json), the publication-link rule, export (xlsx + graph page + Library.bib). The Claude skill `.claude/skills/library-fill-gaps` does the reading pass over Gaps.md. It replaced the Python scripts of `95 - Tools` in the vault `Modular_Electronics_Obsidian v1`.
+
+The vault in use is `Obsidian Research Library` (its `CLAUDE.md` and `00 - Library/Library schema.md` are the rules for the notes). The citations between papers belong to Scoping Review Workbench (repo `Abdulhamid-Baghdadi/scoping-review-workbench`, `Desktop\Scoping Review Workbench`): it writes `cites` (Report → Check citations, `bin/check-citations.js`). Library Studio only reads `cites` (export, link check); its own Citations tool, which wrote `references` / `cited_by`, was removed on 2026-10-20.
 
 ## Working with the user
 
@@ -17,7 +19,7 @@ A browser app for a publication library kept as Obsidian notes (`00 - Library/NN
 - `Start Library Studio.cmd` or `npm run serve` → http://localhost:8771/web/ — Chrome or Edge in a normal window.
 - `npm test` unit tests · `npm run check` architecture · `npm run build` → `dist/`.
 - Browser automation cannot use the folder picker: `node scripts/serve.js 8771 --fixture "<copy of a vault>"` and open `/web/?fixture` — `web/dev.js` copies the fixture into the browser's storage and opens it. Never test on the user's real vault; use a copy (notes only, empty files in place of PDFs are fine).
-- Command line: `node bin/library-studio.js cluster|citations|enrich|check-links|export --vault "<vault>"`.
+- Command line: `node bin/library-studio.js cluster|enrich|check-links|export --vault "<vault>"`.
 
 ## OpenAlex budget
 
@@ -26,6 +28,7 @@ A browser app for a publication library kept as Obsidian notes (`00 - Library/NN
 ## Writing code here
 
 - Write JavaScript with the Write/Edit tools, not shell heredocs. Never put U+2028/U+2029 or other line separators literally into a regex; write the escape `\u2028` inside a string passed to `new RegExp`.
-- Keep the vault format stable: note names, the property names `references` / `cited_by`, the hub note and report layout, the `[auto] ` preset names. Line endings of existing notes are kept (CRLF on Windows).
+- Keep the vault format stable: note names, the property order of `Library schema.md` (`cites` last), the hub note and report layout, the `[auto] ` preset names. Never write `cites` (the Workbench owns it). Line endings of existing notes are kept (CRLF on Windows).
+- When the vault's rules change (its `CLAUDE.md`, `Library schema.md`, the Workbench's `library-citations.js`), check this app against them: folder, property names, what is allowed in the link check.
 - The analysis must stay deterministic for a seed; `tests/unit/community.test.js` and `graph-metrics.test.js` compare with the reference formulas.
 - Hosting: GitHub Pages from Abdulhamid-Baghdadi/library-studio (`.github/workflows/pages.yml`, on every push to main).

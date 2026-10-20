@@ -44,7 +44,7 @@ export function workbook(papers, { pdfHref }) {
     "Library export from the Obsidian vault (the publication notes of the library). Do not edit here: changes are overwritten",
     "at the next export. Edit the notes in the vault and run the export again in Library Studio.",
     "", "Class: UAntwerpen/VABB codes. " + Object.values(CLASS_NAMES).join("; "),
-    "References / Cited by: citations between library papers only (OpenAlex; papers without a DOI are not covered).",
+    "References / Cited by: citations between library papers only, from the notes' cites property (OpenAlex, or the paper's own reference list). Cited by = the library papers whose cites list this paper.",
     "PDF links work when this file stays in the vault folder next to the library folder.",
   ].map(line => [line]);
   return [

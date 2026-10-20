@@ -8,10 +8,12 @@
  *   worksList(json)                                        Work[] in the order of the answer
  *   workDetails(w)                                         Work: { id, doi, title, year, type, authors, journal, url, abstract, referenced, volume, pages }
  *   abstractFromIndex(inverted)                            the abstract text from OpenAlex's inverted index
+ *   normalizeDoi(d)                                        "https://doi.org/10.1/X." → "10.1/x"
  * @module domain/openalex
  */
-import { normalizeDoi } from "./citations.js";
 import { compareCodePoints } from "./text-rules.js";
+
+export const normalizeDoi = d => String(d ?? "").trim().toLowerCase().replace(/^(https?:\/\/(dx\.)?doi\.org\/|doi:\s*)/, "").replace(/\.+$/, "");
 
 export const API = "https://api.openalex.org";
 export const WORK_FIELDS = "id,doi,title,publication_year,type,authorships,primary_location,abstract_inverted_index,referenced_works,biblio";

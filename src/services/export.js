@@ -1,7 +1,7 @@
 /**
  * Writes the library export into the vault: "96 - Library export/Library.xlsx" and "Library graph.html", and
- * the BibTeX file "00 - Library/Library.bib" (one entry per note, cite keys = the notes' `citekey`
- * property, which is added to notes that do not have one yet).
+ * the BibTeX file "00 - Library/Library.bib" in the library's top folder, next to PDFs/ (one entry per note, cite
+ * keys = the notes' `citekey` property, which is added to notes that do not have one yet).
  *
  *   exportLibrary(folder, library, { template, exportDir, clock, citekeys })
  *     → { papers, nodes, edges, files, bibtex: { entries, citekeysWritten } }
@@ -18,9 +18,10 @@ export const BIBTEX = "Library.bib";
 export const citekeysMissing = library => library.papers.filter(p => !p.citekey).length;
 
 export async function exportLibrary(folder, library, { template, exportDir = EXPORT_DIR, clock = null, citekeys = true }) {
-  const pdfs = new Set(await folder.list(`${library.dir}/PDFs`));
+  const pdfDir = `${library.root}/PDFs`;
+  const pdfs = new Set(await folder.list(pdfDir));
   const papers = [...library.papers].sort((a, b) => a.no - b.no);
-  const pdfHref = p => (p.pdf && pdfs.has(p.pdf) ? `../${library.dir}/PDFs/${p.pdf}` : "");
+  const pdfHref = p => (p.pdf && pdfs.has(p.pdf) ? `../${pdfDir}/${p.pdf}` : "");
   await folder.makeDir(exportDir);
   await folder.writeBytes(`${exportDir}/${WORKBOOK}`, await xlsx(workbook(papers, { pdfHref })));
   const data = graphData(papers, { pdfHref });
@@ -38,7 +39,7 @@ export async function exportLibrary(folder, library, { template, exportDir = EXP
       p.citekey = keys.get(p.stem);
     }
   }
-  const bib = `${library.dir}/${BIBTEX}`;
+  const bib = `${library.root}/${BIBTEX}`;
   await folder.writeText(bib, libraryBibtex(papers, keys, { pdfOf: p => (p.pdf && pdfs.has(p.pdf) ? `PDFs/${p.pdf}` : ""), generated: clock?.today() ?? "" }));
   return {
     papers: papers.length, nodes: data.nodes.length, edges: data.edges.length,

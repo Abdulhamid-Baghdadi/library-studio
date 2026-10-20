@@ -1,6 +1,7 @@
 // Library overview: what is in the library, where the tools write, and the way into each tool.
 import { btn, card, h, pill, savedIn, toast } from "../ui.js";
 
+const WORKBENCH = "https://abdulhamid-baghdadi.github.io/scoping-review-workbench/";
 const metric = (v, l, cls = "") => h("div", { class: `metric ${cls}` }, h("div", { class: "v" }, v), h("div", { class: "l" }, l));
 const count = (items) => { const m = new Map(); for (const x of items) m.set(x, (m.get(x) || 0) + 1); return [...m].sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]))); };
 
@@ -36,8 +37,9 @@ export const overview = {
           savedIn([[`${s.reportDir}/Cluster discovery report.md`, "report"], [s.hubDir, "hub notes"], [s.presetsFile, "[auto] presets"]])),
         card("Citations, links, export", null,
           h("ul", { class: "interp" },
-            h("li", {}, h("b", {}, "Citations"), " — fills `references` and `cited_by` of every note from OpenAlex. ", btn("Open →", open("citations"), "sm ghost")),
-            h("li", {}, h("b", {}, "Link check"), " — a publication note must not link to another one except in those two properties. ", btn("Open →", open("links"), "sm ghost")),
+            h("li", {}, h("b", {}, "Citations"), " — the ", h("code", {}, "cites"), " property is written by ", h("a", { href: WORKBENCH, target: "_blank", rel: "noopener" }, "Scoping Review Workbench"),
+              " (Report → Check citations). Here it is read for the export and allowed by the link check."),
+            h("li", {}, h("b", {}, "Link check"), " — a publication note must not link to another one except in ", h("code", {}, "cites"), ". ", btn("Open →", open("links"), "sm ghost")),
             h("li", {}, h("b", {}, "Export"), ` — Library.xlsx and an interactive graph page in ${s.exportDir}. `, btn("Open →", open("export"), "sm ghost"))))),
       backend.library.skipped.length ? h("p", { class: "small muted" }, `Not publication notes (ignored): ${backend.library.skipped.join(", ")}`) : null);
   },

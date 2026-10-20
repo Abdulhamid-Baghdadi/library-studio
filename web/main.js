@@ -38,6 +38,7 @@ if (!("showDirectoryPicker" in window)) {
 // ------------------------------------------------------------------ opening a vault
 
 let current = recall("tool", "overview");
+if (!TOOLS.some(t => t.id === current)) current = "overview";     // a tool that no longer exists (e.g. the old Citations page)
 
 async function openVault(entry) {
   say(`Opening ${entry.name}…`);

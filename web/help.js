@@ -15,7 +15,7 @@ export const HELP = {
 };
 
 export const SETTINGS_HELP = {
-  libraryDir: "The folder of the publication notes inside the vault.",
+  libraryDir: "The folder of the publication notes inside the vault. When it has no notes, the app looks in 00 - Library/Publication Summary, 00 - Library and 98 - Publications.",
   hubDir: "Where the cluster discovery writes one hub note per cluster (old generated notes are deleted first).",
   reportDir: "Where the cluster discovery report is written.",
   presetsFile: "The data file of the Graph Presets plugin; the '[auto]' presets are replaced there (a .bak copy is kept).",

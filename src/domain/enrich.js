@@ -81,7 +81,7 @@ export function planPaper(paper, work, titleMatch, proposal) {
       plan.disagreements.push({ key: "year", note: paper.year, openalex: work.year, serious: diff > 1, hint: diff === 1 ? "online-first vs print year?" : "" });
     }
     if (paper.journal && work.journal && !sameVenue(paper.journal, work.journal)) plan.disagreements.push({ key: "journal", note: paper.journal, openalex: work.journal, serious: false, hint: "" });
-    if (!work.referenced.length) plan.gaps.push("OpenAlex has no reference list for it");
+    if (!work.referenced.length && !paper.cites?.length) plan.gaps.push("OpenAlex has no reference list for it");
     if (!paper.abstract && !work.abstract) plan.gaps.push("no abstract (OpenAlex has none either)");
   } else {
     plan.gaps.push(paper.doi ? "DOI not indexed by OpenAlex" : "no DOI");
@@ -97,8 +97,15 @@ export function planPaper(paper, work, titleMatch, proposal) {
   return plan;
 }
 
-/** Order of the properties in a note, for placing new ones. */
-const AFTER = { authors: "index", year: "authors", journal: "title", url: "doi", suggested_doi: "doi", suggested_category: "category", enriched_by: "importance" };
+/**
+ * Where new properties go, in the vault's property order (00 - Library/Library schema.md): … doi, citekey, url, tags,
+ * hand-written ones, then the tools' records (enriched_by, added_by, added_on, candidate_in, included_in, test_in)
+ * and `cites` last.
+ */
+const AFTER = {
+  authors: "index", year: "authors", journal: "title", url: ["citekey", "doi"], suggested_doi: "doi", suggested_category: "category",
+  enriched_by: { before: ["added_by", "added_on", "candidate_in", "included_in", "test_in", "cites", "references", "references_pdf", "cited_by"] },
+};
 
 export function applyPlan(text, plan, { today, source = "openalex" }) {
   let out = text;
@@ -178,7 +185,7 @@ export function gapsMarkdown(plans, { today }) {
     "## How to use this", "",
     "- **Proposals** are properties the tool was not sure enough to write: `suggested_doi` (found by exact title and year) and `suggested_category` (nearest concept map by content). Accept one by moving the value into the real property and deleting the suggestion; reject by deleting it.",
     "- **Differences** are places where the note and OpenAlex disagree. The note was left as it is. A title or first author that does not match usually means the DOI in the note points to another paper: check it first.",
-    "- **Gaps** are what no database can fill. They are the list for a reading pass: the Claude skill `library-fill-gaps` (in the Library Studio repository) works through this note, reads the PDFs, and writes what it finds into `references_pdf`, the abstract section and the author, year and venue properties, marking each note with `enriched_by: pdf (Claude <date>)`. Anything it cannot read stays here for you.",
+    "- **Gaps** are what no database can fill. They are the list for a reading pass: the Claude skill `library-fill-gaps` (in the Library Studio repository) works through this note, reads the PDFs, and writes what it finds into the abstract section, the author, year and venue properties and, when `cites` is empty, the paper's reference list into `cites`, marking each note with `enriched_by: pdf (Claude <date>)`. Anything it cannot read stays here for you.",
     "",
   ];
   const cell = s => String(s ?? "").replace(/\|/g, "/").replace(/\r?\n/g, " ");

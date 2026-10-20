@@ -41,15 +41,20 @@ createServer(async (req, res) => {
     const rel = decodeURIComponent(url.pathname.slice("/fixture/files/".length));
     const path = normalize(join(FIXTURE, rel));
     if (!path.startsWith(FIXTURE)) { res.writeHead(403).end(); return; }
-    try { res.writeHead(200, { ...headers, "Content-Type": "application/octet-stream" }).end(await readFile(path)); } catch { res.writeHead(404).end(); }
+    let bytes;
+    try { bytes = await readFile(path); } catch { res.writeHead(404).end(); return; }
+    res.writeHead(200, { ...headers, "Content-Type": "application/octet-stream" }).end(bytes);
     return;
   }
   let path = normalize(join(ROOT, decodeURIComponent(url.pathname)));
   if (!path.startsWith(ROOT)) { res.writeHead(403).end(); return; }
+  let body;                                  // read first: headers go out only once the file is there
   try {
     if ((await stat(path)).isDirectory()) path = join(path, "index.html");
-    res.writeHead(200, { ...headers, "Content-Type": TYPES[extname(path)] ?? "application/octet-stream" }).end(await readFile(path));
+    body = await readFile(path);
   } catch {
     res.writeHead(url.pathname === "/" ? 302 : 404, url.pathname === "/" ? { Location: "/web/" } : {}).end();
+    return;
   }
+  res.writeHead(200, { ...headers, "Content-Type": TYPES[extname(path)] ?? "application/octet-stream" }).end(body);
 }).listen(PORT, () => console.log(`Library Studio: http://localhost:${PORT}/web/${FIXTURE ? `  (fixture: ${FIXTURE})` : ""}`));

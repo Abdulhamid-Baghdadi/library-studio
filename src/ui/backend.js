@@ -6,7 +6,7 @@
 import { browserFolder, requestAccess } from "../adapters/browser-folder.js";
 import { forgetVault, recentVaults, rememberVault } from "../adapters/browser-store.js";
 import { fetchHttp } from "../adapters/fetch-http.js";
-import { checkLinks, citekeysMissing, CLUSTER_DEFAULTS, CLUSTER_PATHS, enrichLibrary, EXPORT_DIR, exportLibrary, isVault, LIBRARY_DIR, openLibrary, updateCitations, withApiKey } from "../index.js";
+import { checkLinks, citekeysMissing, CLUSTER_DEFAULTS, CLUSTER_PATHS, enrichLibrary, EXPORT_DIR, exportLibrary, isVault, LIBRARY_DIR, openLibrary, withApiKey } from "../index.js";
 
 /** Settings of a vault and their defaults. */
 export const SETTINGS = {
@@ -36,7 +36,7 @@ export class Backend {
   /** HTTP for OpenAlex, with the user's API key when one is set. */
   #http() { return withApiKey(fetchHttp(), this.settings.apiKey); }
 
-  /** The vault's settings; the library folder is the one actually opened (e.g. "98 - Publications" in an older vault). */
+  /** The vault's settings; the library folder is the one actually opened (e.g. "00 - Library" in an older vault). */
   get settings() {
     const s = { ...SETTINGS, ...(this.entry?.settings ?? {}) };
     if (this.library) s.libraryDir = this.library.dir;
@@ -121,12 +121,6 @@ export class Backend {
   }
 
   get lastCluster() { return this.entry?.lastCluster ?? null; }
-
-  async citations({ apply = false, onProgress } = {}) {
-    const r = await updateCitations(this.folder, this.library, this.#http(), { apply, mailto: this.settings.mailto, onProgress });
-    if (apply) await this.reload();
-    return r;
-  }
 
   async enrich({ apply = false, onProgress } = {}) {
     const r = await enrichLibrary(this.folder, this.library, this.#http(), { apply, mailto: this.settings.mailto, clock: clock(), onProgress });

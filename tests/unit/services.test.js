@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { memoryFolder } from "../../src/adapters/memory-folder.js";
-import { checkLinks, exportLibrary, isVault, openLibrary, runClusterDiscovery, updateCitations } from "../../src/index.js";
+import { checkLinks, exportLibrary, isVault, openLibrary, runClusterDiscovery } from "../../src/index.js";
 import { files, NOTES } from "./fixtures/library.js";
 
 const clock = { today: () => "2026-10-12", now: () => "2026-10-12 09:00", iso: () => "2026-10-12T09:00:00.000Z" };
@@ -12,7 +12,7 @@ test("openLibrary reads the publication notes and skips the others", async () =>
   assert.equal(lib.papers.length, NOTES.length);
   assert.deepEqual(lib.skipped, ["tags.md"]);
   assert.equal(lib.dir, "98 - Publications", "an older vault keeps its library folder");
-  await assert.rejects(openLibrary(memoryFolder({ "other/a.md": "" })), /No folder "00 - Library"/);
+  await assert.rejects(openLibrary(memoryFolder({ "other/a.md": "" })), /No folder "00 - Library\/Publication Summary"/);
 });
 
 test("openLibrary finds 00 - Library, also when the setting still names 98 - Publications", async () => {
@@ -22,6 +22,29 @@ test("openLibrary finds 00 - Library, also when the setting still names 98 - Pub
   assert.equal(lib.papers.length, NOTES.length);
   assert.equal(await isVault(memoryFolder(renamed)), true);
   assert.equal(await isVault(memoryFolder({ "other/a.md": "" })), false);
+});
+
+test("openLibrary finds the notes in 00 - Library/Publication Summary, also when the setting names 00 - Library", async () => {
+  const folder = memoryFolder({ ...files("00 - Library/Publication Summary"), "00 - Library/Library schema.md": "---\ntype: schema\n---\n" });
+  for (const libraryDir of [undefined, "00 - Library", "98 - Publications"]) {
+    const lib = await openLibrary(folder, { libraryDir });
+    assert.equal(lib.dir, "00 - Library/Publication Summary");
+    assert.equal(lib.root, "00 - Library");
+    assert.equal(lib.papers.length, NOTES.length);
+  }
+  const empty = await openLibrary(memoryFolder({ "00 - Library/Library schema.md": "---\ntype: schema\n---\n" }));
+  assert.equal(empty.dir, "00 - Library", "a library without publication notes yet: the folder that exists");
+  assert.equal(empty.papers.length, 0);
+});
+
+test("openLibrary reads cites: links between library papers, and who cites whom", async () => {
+  const lib = await openLibrary(memoryFolder(files()));
+  const [steward, pimmler, browning] = lib.papers;
+  assert.deepEqual(pimmler.cites, [`[[${steward.stem}]]`, "10.9/outside"]);
+  assert.deepEqual(browning.refs, [steward.stem, pimmler.stem]);
+  assert.deepEqual(steward.citedBy, [pimmler.stem, browning.stem]);
+  assert.deepEqual(pimmler.citedBy, [browning.stem]);
+  assert.deepEqual(browning.citedBy, []);
 });
 
 test("runClusterDiscovery: dry run writes only the report; a full run writes hub notes and presets", async () => {
@@ -65,38 +88,14 @@ test("checkLinks finds and fixes links between publication notes", async () => {
   const folder = memoryFolder(files());
   const lib = await openLibrary(folder);
   const before = await checkLinks(folder, lib);
-  assert.equal(before.total, 2);                               // the repair paper links two publications
+  assert.equal(before.total, 2);                               // the repair paper links two publications; links in `cites` are allowed
   assert.deepEqual(before.findings.map(f => f.count), [2]);
   const fixed = await checkLinks(folder, lib, { fix: true });
   assert.equal(fixed.total, 2);
   const text = await folder.readText(`98 - Publications/${NOTES[6].stem}.md`);
   assert.ok(text.includes("Pimmler & Eppinger 1994 (No. 002) Simpson 2002 (No. 005)"));
   assert.equal((await checkLinks(folder, await openLibrary(folder))).total, 0);
-});
-
-test("updateCitations: dry run counts, apply writes the properties", async () => {
-  const folder = memoryFolder(files());
-  const lib = await openLibrary(folder);
-  let calls = 0;
-  const http = { get: async url => ({ status: 200, header: () => null, json: async () => {
-    calls++;
-    if (url.includes("mailto")) assert.ok(url.includes("mailto=me%40x.org"));
-    return { results: [
-      { id: "W1", doi: "https://doi.org/10.1/a", referenced_works: [] },
-      { id: "W2", doi: "https://doi.org/10.1/b", referenced_works: ["W1"] },
-      { id: "W3", doi: "https://doi.org/10.1/c", referenced_works: ["W1", "W2", "W0"] },
-    ] };
-  } }) };
-  const dry = await updateCitations(folder, lib, http, { mailto: "me@x.org" });
-  assert.equal(calls, 1);
-  assert.deepEqual([dry.publications, dry.found, dry.links, dry.missing, dry.written], [8, 3, 3, 5, 0]);
-  assert.deepEqual(dry.mostCited.slice(0, 2).map(m => [m.stem.slice(0, 3), m.count]), [["001", 2], ["002", 1]]);
-  const done = await updateCitations(folder, lib, http, { apply: true });
-  assert.equal(done.written, 8);                               // every note: the properties move before `category`, as the vault rule puts them
-  const steward = await folder.readText(`98 - Publications/${NOTES[0].stem}.md`);
-  assert.ok(steward.includes(`references: []\ncited_by:\n  - "[[${NOTES[1].stem}]]"\n  - "[[${NOTES[2].stem}]]"\ncategory:`));
-  const again = await updateCitations(folder, await openLibrary(folder), http, { apply: true });
-  assert.equal(again.written, 0);
+  assert.ok((await folder.readText(`98 - Publications/${NOTES[2].stem}.md`)).includes(`cites:\n  - "[[${NOTES[0].stem}]]"`), "cites is left as it is");
 });
 
 test("exportLibrary writes the workbook and the graph page", async () => {
@@ -117,6 +116,18 @@ test("exportLibrary writes the workbook and the graph page", async () => {
   assert.equal(data.nodes[0].pdf, `../98 - Publications/PDFs/${NOTES[0].stem}.pdf`);
   assert.equal(data.nodes[1].pdf, "");
   assert.equal(data.edges.filter(e => e.kind === "category").length, 7);
+  assert.deepEqual(data.edges.filter(e => e.kind === "citation").map(e => [e.from.slice(0, 3), e.to.slice(0, 3)]), [["002", "001"], ["003", "001"], ["003", "002"]]);
+  assert.deepEqual([data.nodes[0].cited, data.nodes[0].status], [2, "read"]);
   const bytes = await folder.readBytes("96 - Library export/Library.xlsx");
   assert.deepEqual([...bytes.slice(0, 4)], [0x50, 0x4b, 0x03, 0x04]);
+});
+
+test("exportLibrary in the current layout: PDFs and Library.bib in 00 - Library, next to Publication Summary", async () => {
+  const folder = memoryFolder({ ...files("00 - Library/Publication Summary"), [`00 - Library/PDFs/${NOTES[0].stem}.pdf`]: new Uint8Array(1) });
+  const r = await exportLibrary(folder, await openLibrary(folder), { template: "<script>const DATA = /*DATA*/null;</script>", citekeys: false });
+  assert.equal(r.files[2], "00 - Library/Library.bib");
+  assert.ok((await folder.readText("00 - Library/Library.bib")).includes("file     = {:PDFs/" + NOTES[0].stem + ".pdf:PDF}"));
+  const data = JSON.parse(/const DATA = (.*);<\/script>/.exec(await folder.readText("96 - Library export/Library graph.html"))[1]);
+  assert.equal(data.nodes[0].pdf, `../00 - Library/PDFs/${NOTES[0].stem}.pdf`);
+  assert.equal(await folder.exists("00 - Library/Publication Summary/Library.bib"), false);
 });

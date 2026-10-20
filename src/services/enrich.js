@@ -13,9 +13,8 @@
  */
 import { boilerplate, noteText, tfidf } from "../domain/cluster-text.js";
 import { clusterNotes } from "../domain/cluster-analysis.js";
-import { normalizeDoi } from "../domain/citations.js";
 import { applyPlan, candidateList, candidatesMarkdown, categoryProposals, FILES, gapsMarkdown, planPaper, referencesJson, titleKey } from "../domain/enrich.js";
-import { titleSearchUrl, WORK_FIELDS, worksByIdUrls, worksList } from "../domain/openalex.js";
+import { normalizeDoi, titleSearchUrl, WORK_FIELDS, worksByIdUrls, worksList } from "../domain/openalex.js";
 import { fetchWorksByDoi, getJson, OpenAlexBudgetError } from "./openalex-works.js";
 
 export async function enrichLibrary(folder, library, http, { apply = false, mailto = "", clock, onProgress = () => {} }) {

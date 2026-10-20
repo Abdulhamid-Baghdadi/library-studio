@@ -32,6 +32,18 @@ test("fixLinks replaces them by plain text and keeps everything else", () => {
   assert.deepEqual(forbiddenLinks(fixed, "005 - 1995 - Ulrich - The Role", pubs), []);
 });
 
+test("forbiddenLinks: links in cites are allowed, in the front matter only", () => {
+  const H = "003 - 1990 - Henderson & Clark - Architectural Innovation";
+  const note = [
+    "---", "type: publication", "cites:", `  - "[[${H}]]"`, '  - "10.1/x"', "tags:", "  - a", `related: "[[${H}]]"`, "---",
+    `cites: [[${H}]] written in the body`, "",
+  ].join("\r\n");
+  const hits = forbiddenLinks(note, "005 - 1995 - Ulrich - The Role", pubs);
+  assert.equal(hits.length, 2, "the related property and the body line");
+  assert.ok(hits.every(h => note.slice(h.start).startsWith(`[[${H}]]`) && h.start > note.indexOf("related:")));
+  assert.deepEqual(forbiddenLinks(`---\ncites: ["[[${H}]]"]\n---\n`, "x", pubs), [], "a list written on one line");
+});
+
 test("plainReference", () => {
   assert.equal(plainReference("012 - 2004 - Sosa Eppinger & Rowles - X", null, pubs), "Sosa Eppinger & Rowles 2004 (No. 012)");
   assert.equal(plainReference("Odd name", null, new Map([["Odd name", "77"]])), "Odd name (No. 77)");

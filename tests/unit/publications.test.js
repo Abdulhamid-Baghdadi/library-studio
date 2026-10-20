@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bodyLinks, paperLabel, readPublication, section } from "../../src/domain/publications.js";
+import { bodyLinks, citedByOf, libraryRoot, paperLabel, readPublication, section } from "../../src/domain/publications.js";
 
 const NOTE = [
   "---", "type: publication", "index: 5", "authors: Ulrich", "year: 1995",
@@ -28,12 +28,39 @@ test("readPublication: properties, derived fields and sections (CRLF note)", () 
   assert.equal(paperLabel(p), "Ulrich 1995 (No. 005)");
 });
 
+test("readPublication: the current note format (cites, status list, reason_for_importance)", () => {
+  const note = [
+    "---", "status:", "  - quick review", "  - to cite", "importance: 1", "reason_for_importance:", '  - "slot, bus and sectional"', "  - typology",
+    "type: publication", "index: 5", "tags:", "  - modularity", "cites:", '  - "[[003 - 1990 - Henderson & Clark - Architectural Innovation]]"',
+    '  - "10.1016/0048-7333(90)90049-c"', '  - "W1573885461"', '  - "Simon H. A. (1962) The architecture of complexity"', '  - "[[005 - 1995 - Ulrich - The Role]]"', "---", "",
+    "## Why is this paper important for my research?", "", "Not used: reason_for_importance comes first.", "",
+  ].join("\r\n");
+  const p = readPublication("005 - 1995 - Ulrich - The Role", note);
+  assert.equal(p.status, "quick review, to cite");
+  assert.equal(p.cites.length, 5);
+  assert.deepEqual(p.refs, ["003 - 1990 - Henderson & Clark - Architectural Innovation"], "only the links, not itself");
+  assert.equal(p.why, "slot, bus and sectional; typology");
+  const heading = readPublication("006 - 2000 - X - Y", "---\ntype: publication\nreason_for_importance: []\n---\n## Why is this paper important for my research?\n\nIt matters.\n");
+  assert.equal(heading.why, "It matters.");
+});
+
+test("citedByOf: the library papers whose refs name a paper", () => {
+  const papers = [{ stem: "A", refs: ["B", "C"] }, { stem: "B", refs: ["C", "outside"] }, { stem: "C", refs: [] }];
+  assert.deepEqual([...citedByOf(papers)], [["A", []], ["B", ["A"]], ["C", ["A", "B"]]]);
+});
+
 test("readPublication: index falls back to the file name; non-publications are null", () => {
   const p = readPublication("012 - 2000 - Someone - Title", "---\ntype: publication\ntitle: T\n---\nbody\n");
   assert.equal(p.no, 12);
   assert.equal(p.index, "012 - 2000 - Someone - Title");
   assert.equal(readPublication("tags", "---\ntype: index\n---\n"), null);
   assert.equal(readPublication("plain", "no front matter"), null);
+});
+
+test("libraryRoot: the top folder, which holds PDFs/ and Library.bib", () => {
+  assert.equal(libraryRoot("00 - Library/Publication Summary"), "00 - Library");
+  assert.equal(libraryRoot("00 - Library"), "00 - Library");
+  assert.equal(libraryRoot("98 - Publications"), "98 - Publications");
 });
 
 test("section and bodyLinks", () => {
