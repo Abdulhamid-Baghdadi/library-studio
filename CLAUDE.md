@@ -32,3 +32,16 @@ The vault in use is `Obsidian Research Library` (its `CLAUDE.md` and `00 - Libra
 - When the vault's rules change (its `CLAUDE.md`, `Library schema.md`, the Workbench's `library-citations.js`), check this app against them: folder, property names, what is allowed in the link check.
 - The analysis must stay deterministic for a seed; `tests/unit/community.test.js` and `graph-metrics.test.js` compare with the reference formulas.
 - Hosting: GitHub Pages from Abdulhamid-Baghdadi/library-studio (`.github/workflows/pages.yml`, on every push to main).
+
+## UI rules
+
+The same rules as Scoping Review Workbench (its `CLAUDE.md`; full rules, sources and checks in its `docs/ui-ux-rules.md`). Check every page change against them before reporting it done:
+
+- **Show status.** Every action gives feedback (toast, busy button, updated counts); long jobs show progress; each tool says where it writes (`savedIn`).
+- **Words.** The library's own terms (publication note, enrich, link check, cluster), never code names; the same word for the same thing everywhere; help next to each setting (`web/help.js`).
+- **Control.** Writing to the vault or bulk changes ask first (`confirmBox`), naming the action and how many notes it touches; preview before writing where there is one.
+- **Consistency.** The shared helpers in `web/ui.js` (`h`, `btn`, `pill`, `segmented`, `card`, `modal`, `confirmBox`, `savedIn`) and the CSS tokens (`--accent`, `--muted`, `--border` …); never hard-coded colours.
+- **Prevent errors.** Disable buttons that cannot work and say why; errors in plain language with what to do next (e.g. "Choose the vault folder first").
+- **Minimal.** One primary button per card; secondary actions as ghost buttons; options visible rather than remembered.
+- **Accessible (WCAG 2.2 AA):** text contrast ≥ 4.5:1 (UI parts ≥ 3:1) in light and dark; visible keyboard focus; everything clickable reachable by keyboard; targets ≥ 24 × 24 px; no information by colour alone; `prefers-reduced-motion` respected.
+- **Verify** every UI change in the browser pane, in light and dark and with the keyboard.
