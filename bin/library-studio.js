@@ -13,6 +13,11 @@
 //   check-links  reports links between publication notes outside `cites`; --fix replaces them by plain-text references
 //   export       writes "96 - Library export/Library.xlsx", "Library graph.html" and "00 - Library/Library.bib";
 //                adds a citekey property to notes without one (--no-citekeys: leave the notes untouched)
+//   co-citation  co-citation maps per time phase for the analysis --name "<name>" (its folder "tmp/co-citation/<name>"
+//                holds settings.json and the downloaded data). --download fetches the citing papers from OpenAlex first
+//                (10 credits per page of 200; resumes where it stopped). Without --write it only prints the numbers;
+//                --write writes the VOSviewer files, the figure and the evidence-synthesis note. --preset mertens-2023
+//                saves the settings of the Mertens et al. 2023 replica into the analysis first.
 //
 //   --vault defaults to the current folder. The notes are looked up in "00 - Library/Publication Summary", then
 //   "00 - Library" and "98 - Publications"; --library "<folder>" names another. The citation property `cites` is
@@ -21,7 +26,7 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { nodeFolder } from "../src/adapters/node-folder.js";
 import { fetchHttp } from "../src/adapters/fetch-http.js";
-import { checkLinks, CLUSTER_STEPS, enrichLibrary, exportLibrary, openLibrary, runClusterDiscovery, withApiKey } from "../src/index.js";
+import { checkLinks, CLUSTER_STEPS, CO_CITATION_DIR, CO_CITATION_STEPS, downloadCitingSet, enrichLibrary, exportLibrary, MERTENS_2023, openLibrary, readAnalysis, runClusterDiscovery, runCoCitation, saveAnalysisSettings, withApiKey } from "../src/index.js";
 
 const args = process.argv.slice(2);
 const command = args.find(a => !a.startsWith("--"));
@@ -96,7 +101,29 @@ async function main() {
     console.log(`BibTeX: ${r.bibtex.entries} entries -> ${vault}\\${r.files[2]}` + (r.bibtex.citekeysWritten ? ` (citekey property added to ${r.bibtex.citekeysWritten} notes)` : ""));
     return 0;
   }
-  console.error(`Unknown command "${command}". Commands: cluster, enrich, check-links, export.`);
+  if (command === "co-citation") {
+    const name = opt("name");
+    if (!name) { console.error('Name the analysis: --name "<name>" (a folder in tmp/co-citation).'); return 2; }
+    const dir = `${CO_CITATION_DIR}/${name}`;
+    if (opt("preset") === "mertens-2023") await saveAnalysisSettings(folder, dir, { ...(await readAnalysis(folder, dir)).settings, ...MERTENS_2023 });
+    const { settings } = await readAnalysis(folder, dir);
+    if (!settings.query) { console.error(`No settings in ${dir}/settings.json yet: set them up in the app, or use --preset mertens-2023.`); return 2; }
+    if (flag("download")) {
+      const d = await downloadCitingSet(folder, http(), dir, settings, { mailto: opt("mailto", ""), today: clock.today(), onProgress: m => console.log(m) });
+      console.log(`${d.works} citing works downloaded (${d.done} of ${d.pages} pages)`);
+      if (d.incomplete) console.log(`WARNING: ${d.incomplete}`);
+    }
+    const r = await runCoCitation(folder, library, dir, settings, {
+      name, http: http(), mailto: opt("mailto", ""), clock, write: flag("write"),
+      onStep: (n, text, detail) => console.log(`[${n}/${CO_CITATION_STEPS.length}] ${text}${detail ? " | " + detail : ""}`),
+    });
+    console.log(`${r.citing.total} citing papers; cleaning: ${r.cleaning.merged.length} merged works, ${r.cleaning.dropped.length} dropped records`);
+    for (const s of r.scopes) console.log(`  ${s.phase.padEnd(14)} ${s.name}: ${s.citing} citing papers, ${s.nodes.length} works, ${s.clusters.length} clusters, density ${s.density.toFixed(3)}`);
+    if (r.incomplete) console.log(`WARNING: ${r.incomplete}`);
+    console.log(r.files.length ? ["written:", ...r.files].join("\n  ") : "(only the numbers: add --write to write the files)");
+    return 0;
+  }
+  console.error(`Unknown command "${command}". Commands: cluster, enrich, check-links, export, co-citation.`);
   return 2;
 }
 

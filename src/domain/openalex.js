@@ -9,6 +9,16 @@
  *   workDetails(w)                                         Work: { id, doi, title, year, type, authors, journal, url, abstract, referenced, volume, pages }
  *   abstractFromIndex(inverted)                            the abstract text from OpenAlex's inverted index
  *   normalizeDoi(d)                                        "https://doi.org/10.1/X." → "10.1/x"
+ *
+ * The citing set of a co-citation analysis (a search, so 10 credits per request):
+ *   FIELDS                                                 OpenAlex's 26 fields [[id, name]] (ASJC)
+ *   citingFilter({ query, from, to, types, language, fields })   the filter: title, abstract and keywords searched
+ *                                                          without stemming (title_abstract_keywords.search.exact)
+ *   searchProblem(query)                                   why OpenAlex cannot take this search, or ""
+ *   citingPageUrl(filter, page, { mailto })                one page of 200 works (page paging: OpenAlex refuses
+ *                                                          cursor paging after page 1 for these searches, and page
+ *                                                          paging stops at 10,000 results)
+ *   citedWorksUrls(ids, { mailto })                        metadata of cited works, 100 per request (1 credit each)
  * @module domain/openalex
  */
 import { compareCodePoints } from "./text-rules.js";
@@ -72,3 +82,45 @@ export function worksFromResponse(json) {
   for (const w of worksList(json)) out.set(w.doi, w);
   return out;
 }
+
+// ------------------------------------------------------------------ the citing set of a co-citation analysis
+
+export const FIELDS = Object.freeze([
+  [11, "Agricultural and Biological Sciences"], [12, "Arts and Humanities"], [13, "Biochemistry, Genetics and Molecular Biology"],
+  [14, "Business, Management and Accounting"], [15, "Chemical Engineering"], [16, "Chemistry"], [17, "Computer Science"],
+  [18, "Decision Sciences"], [19, "Earth and Planetary Sciences"], [20, "Economics, Econometrics and Finance"], [21, "Energy"],
+  [22, "Engineering"], [23, "Environmental Science"], [24, "Immunology and Microbiology"], [25, "Materials Science"],
+  [26, "Mathematics"], [27, "Medicine"], [28, "Neuroscience"], [29, "Nursing"], [30, "Pharmacology, Toxicology and Pharmaceutics"],
+  [31, "Physics and Astronomy"], [32, "Psychology"], [33, "Social Sciences"], [34, "Veterinary"], [35, "Dentistry"], [36, "Health Professions"],
+]);
+
+export const PER_PAGE = 200;
+export const MAX_RESULTS = 10_000;
+export const CITING_FIELDS = "id,doi,display_name,publication_year,type,primary_location,primary_topic,referenced_works,cited_by_count";
+export const CITED_FIELDS = "id,doi,display_name,publication_year,type,authorships,primary_location,cited_by_count";
+
+export function searchProblem(query) {
+  const q = String(query ?? "").trim();
+  if (!q) return "Write a search first.";
+  if (q.includes(",")) return "The search cannot contain a comma: OpenAlex separates its filters with commas. Use OR between words instead.";
+  if ((q.match(/"/g) ?? []).length % 2) return "A quotation mark is not closed.";
+  let depth = 0;
+  for (const c of q) { depth += c === "(" ? 1 : c === ")" ? -1 : 0; if (depth < 0) break; }
+  if (depth) return "The brackets do not match.";
+  return "";
+}
+
+export function citingFilter({ query, from, to, types = [], language = "", fields = [] }) {
+  const parts = [`title_abstract_keywords.search.exact:${String(query).trim()}`, `publication_year:${from}-${to}`];
+  if (types.length) parts.push(`type:${types.join("|")}`);
+  if (language) parts.push(`language:${language}`);
+  if (fields.length) parts.push(`primary_topic.field.id:${fields.map(f => `fields/${f}`).join("|")}`);
+  return parts.join(",");
+}
+
+export function citingPageUrl(filter, page, { mailto = "" } = {}) {
+  const params = new URLSearchParams({ filter, select: CITING_FIELDS, "per-page": String(PER_PAGE), page: String(page) });
+  return `${API}/works?${withMailto(params, mailto)}`;
+}
+
+export const citedWorksUrls = (ids, { mailto = "" } = {}) => worksByIdUrls(ids, { mailto, batch: 100, fields: CITED_FIELDS });
