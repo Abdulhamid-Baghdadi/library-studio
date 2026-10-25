@@ -16,6 +16,10 @@ export { xlsx } from "./domain/xlsx.js";
 export { assignCitekeys, bibtexEntry, citekeyFor, libraryBibtex, parseAuthors } from "./domain/bibtex.js";
 export { applyPlan, categoryProposals, FILES as ENRICH_FILES, gapsMarkdown, planPaper } from "./domain/enrich.js";
 export { normalizeNewlines } from "./domain/text-rules.js";
+export { DEFAULTS as CO_CITATION_DEFAULTS, MERTENS_2023, normalizeSettings as normalizeCoCitationSettings, parseCorrections, scopesOf } from "./domain/co-citation.js";
+export { STEPS as CO_CITATION_STEPS } from "./domain/co-citation-analysis.js";
+export { OTHER as PERSPECTIVE_OTHER, perspectiveName, perspectiveOrder } from "./domain/co-citation-notes.js";
+export { FIELDS as OPENALEX_FIELDS, citingFilter, searchProblem } from "./domain/openalex.js";
 
 // services: use cases
 export { isVault, openLibrary } from "./services/library.js";
@@ -24,6 +28,7 @@ export { checkLinks } from "./services/link-check.js";
 export { BIBTEX, citekeysMissing, exportLibrary } from "./services/export.js";
 export { enrichLibrary } from "./services/enrich.js";
 export { OpenAlexBudgetError, withApiKey } from "./services/openalex-works.js";
+export { DATA_DIR as CO_CITATION_DIR, downloadCitingSet, listAnalyses, outputsFor, readAnalysis, runCoCitation, saveAnalysisSettings, subfieldsOf } from "./services/co-citation.js";
 
 // adapters
 export { memoryFolder } from "./adapters/memory-folder.js";
