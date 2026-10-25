@@ -13,10 +13,12 @@
  *   readAnalysis(folder, dir)                 { settings, download, pages, result }
  *   saveAnalysisSettings(folder, dir, settings)
  *   subfieldsOf(folder, dir, settings)        [[subfield, papers]] of the downloaded set (for the subfield filter)
- *   downloadCitingSet(folder, http, dir, settings, { mailto, today, onProgress, fresh })
+ *   downloadCitingSet(folder, http, dir, settings, { mailto, today, onProgress, fresh, signal })
  *       → { count, pages, done, works, complete, incomplete }. Pages of 200 works; each request is a search and
  *       costs 10 credits. Resumes where the last download stopped; a search with more than 10,000 results is
- *       split into year ranges. When the daily budget runs out it keeps the pages so far (incomplete).
+ *       split into year ranges. When the daily budget runs out, or `signal` (an AbortSignal) is aborted, it keeps
+ *       the pages so far (incomplete). onProgress(text, { count, pages, done }) before each page.
+ *   downloadState(download, settings)        { status: "none" | "partial" | "complete" | "changed", done, pages, credits }
  *   runCoCitation(folder, library, dir, settings, { name, http, mailto, clock, onStep, write })
  *       looks up the cited works it still needs (1 credit per 100), analyses, and writes the VOSviewer files, the
  *       figure, the evidence-synthesis note and result.json → the result for the page (without the full
@@ -79,7 +81,20 @@ export async function subfieldsOf(folder, dir, settings) {
 /** The key that says whether a download belongs to these settings: the filter without the years, and the years. */
 const downloadKey = s => ({ filter: citingFilter({ ...s, from: "Y", to: "Y" }), from: s.from, to: s.to });
 
-export async function downloadCitingSet(folder, http, dir, settings, { mailto = "", today = "", onProgress = () => {}, fresh = false } = {}) {
+/** Where the download of an analysis stands, for the page: nothing yet, part of it, all of it, or for another search. */
+export function downloadState(download, settings, pages = 0) {
+  if (!download) return { status: pages ? "complete" : "none", done: pages, pages, credits: 0, recorded: false };
+  const key = downloadKey(normalizeSettings(settings));
+  const chunks = download.chunks ?? [];
+  const done = chunks.reduce((a, c) => a + c.done, 0), total = chunks.reduce((a, c) => a + c.pages, 0);
+  const changed = download.key?.filter !== key.filter || download.key?.from !== key.from || download.key?.to !== key.to;
+  const status = changed ? "changed" : download.complete ? "complete" : "partial";
+  return { status, done, pages: total, credits: download.complete ? 0 : Math.max(10, (total - done) * CREDITS_PER_SEARCH), recorded: true, date: download.date, works: download.works ?? 0 };
+}
+
+class Stopped extends Error {}
+
+export async function downloadCitingSet(folder, http, dir, settings, { mailto = "", today = "", onProgress = () => {}, fresh = false, signal = null } = {}) {
   const s = normalizeSettings(settings);
   const problem = searchProblem(s.query);
   if (problem) throw new Error(problem);
@@ -103,6 +118,7 @@ export async function downloadCitingSet(folder, http, dir, settings, { mailto = 
       const chunk = state.chunks[k];
       const filter = citingFilter({ ...s, from: chunk.from, to: chunk.to });
       const fetchPage = async page => {
+        if (signal?.aborted) throw new Stopped();
         const t = totals();
         onProgress(`Downloading the citing papers: page ${t.done + 1}${t.pages ? ` of ${t.pages}` : ""} (${chunk.from}–${chunk.to})…`, t);
         const json = await getJson(http, citingPageUrl(filter, page, { mailto }));
@@ -134,9 +150,10 @@ export async function downloadCitingSet(folder, http, dir, settings, { mailto = 
     }
     state.complete = true;
   } catch (e) {
-    if (!(e instanceof OpenAlexBudgetError)) { await save(); throw e; }
+    if (!(e instanceof OpenAlexBudgetError) && !(e instanceof Stopped)) { await save(); throw e; }
     const t = totals();
-    incomplete = `Downloaded ${t.done} of ${t.pages || "?"} pages; the pages so far are kept. ${e.message} Download again to continue where it stopped (about ${(Math.max(0, t.pages - t.done)) * CREDITS_PER_SEARCH} credits left).`;
+    const why = e instanceof Stopped ? "Stopped." : e.message;
+    incomplete = `Downloaded ${t.done} of ${t.pages || "?"} pages; the pages so far are kept. ${why} Download again to continue where it stopped (about ${(Math.max(0, t.pages - t.done)) * CREDITS_PER_SEARCH} credits left).`;
   }
   state.date = today || state.date;
   const t = totals();

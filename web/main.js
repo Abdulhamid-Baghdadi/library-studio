@@ -10,6 +10,7 @@ const recall = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { 
 
 const backend = new Backend({
   workerUrl: new URL("./cluster-worker.js", import.meta.url),
+  coCitationWorkerUrl: new URL("./co-citation-worker.js", import.meta.url),
   templateUrl: new URL("./graph-template.html", import.meta.url),
 });
 window.backend = backend;
@@ -120,7 +121,12 @@ function render() {
 window.renderPage = render;
 
 $("#main").addEventListener("scroll", () => $("#topbar").classList.toggle("scrolled", $("#main").scrollTop > 4));
-$("#btnClose").onclick = () => { if (backend.clusterRunning) return toast("A cluster analysis is running; stop it first.", "err"); $("#app").hidden = true; startScreen(); };
+$("#btnClose").onclick = () => {
+  if (backend.clusterRunning) return toast("A cluster analysis is running; stop it first.", "err");
+  if (backend.coCitationRunning || backend.coCitationDownloading) return toast("A co-citation download or analysis is running; stop it first.", "err");
+  $("#app").hidden = true;
+  startScreen();
+};
 
 // ------------------------------------------------------------------ settings
 
@@ -137,12 +143,13 @@ function settingsDialog() {
     field("reportDir", "Cluster report folder"),
     field("presetsFile", "Graph Presets data file"),
     field("exportDir", "Export folder"),
+    field("coCitationDir", "Co-citation data folder"),
     field("vaultName", "Obsidian vault name"),
     field("mailto", "Email for OpenAlex (optional)"),
     field("apiKey", "OpenAlex API key (optional)"));
   modal("Settings for this vault", body, [["Cancel"], ["Save", async () => {
     const next = Object.fromEntries(Object.entries(fields).map(([k, el]) => [k, el.value.trim().replace(/[\\/]+$/, "")]));
-    for (const k of ["libraryDir", "hubDir", "reportDir", "presetsFile", "exportDir"]) if (!next[k]) return toast("Folder and file paths cannot be empty.", "err");
+    for (const k of ["libraryDir", "hubDir", "reportDir", "presetsFile", "exportDir", "coCitationDir"]) if (!next[k]) return toast("Folder and file paths cannot be empty.", "err");
     const libraryChanged = next.libraryDir !== s.libraryDir;
     await backend.saveSettings(next);
     if (libraryChanged) {
