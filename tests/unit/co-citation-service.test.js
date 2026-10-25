@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { memoryFolder } from "../../src/adapters/memory-folder.js";
-import { downloadCitingSet, listAnalyses, openLibrary, readAnalysis, runCoCitation, saveAnalysisSettings, subfieldsOf } from "../../src/index.js";
+import { downloadCitingSet, downloadState, listAnalyses, openLibrary, readAnalysis, runCoCitation, saveAnalysisSettings, subfieldsOf } from "../../src/index.js";
 import { citedWorks, citingWorks, SETTINGS } from "./fixtures/co-citation.js";
 import { files } from "./fixtures/library.js";
 
@@ -49,6 +49,9 @@ test("download: pages of 200, one search request each, then nothing left to fetc
   const a = await readAnalysis(folder, DIR);
   assert.equal(a.pages, 3);
   assert.equal(a.download.query, SETTINGS.query);
+  assert.deepEqual([downloadState(a.download, SETTINGS).status, downloadState(a.download, { ...SETTINGS, to: 2010 }).status], ["complete", "changed"]);
+  assert.equal(downloadState(null, SETTINGS, 3).status, "complete", "older data without a record of its search");
+  assert.equal(downloadState(null, SETTINGS).status, "none");
 });
 
 test("download: when the daily budget runs out the pages so far are kept, and the next download continues", async () => {
@@ -56,11 +59,16 @@ test("download: when the daily budget runs out the pages so far are kept, and th
   const first = await downloadCitingSet(folder, fakeOpenAlex(many(), { budgetAfter: 1 }), DIR, SETTINGS);
   assert.equal(first.complete, false);
   assert.match(first.incomplete, /Downloaded 1 of 3 pages; the pages so far are kept\. OpenAlex's free daily budget is used up .*\(about 20 credits left\)/);
+  const partial = downloadState((await readAnalysis(folder, DIR)).download, SETTINGS);
+  assert.deepEqual([partial.status, partial.done, partial.pages, partial.credits], ["partial", 1, 3, 20]);
   const http = fakeOpenAlex(many());
   const second = await downloadCitingSet(folder, http, DIR, SETTINGS);
   assert.equal(second.complete, true);
   assert.equal(http.calls.length, 2, "only pages 2 and 3");
   assert.equal(second.works, 450);
+  const stop = new AbortController();
+  const third = await downloadCitingSet(memoryFolder(), fakeOpenAlex(many()), DIR, SETTINGS, { signal: stop.signal, onProgress: (m, t) => { if (t.done === 1) stop.abort(); } });
+  assert.match(third.incomplete, /^Downloaded 2 of 3 pages; the pages so far are kept\. Stopped\./, "a stop asked for during page 2 takes effect before page 3");
 });
 
 test("download: more than 10,000 results are split into year ranges; a changed search starts again", async () => {

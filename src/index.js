@@ -28,7 +28,7 @@ export { checkLinks } from "./services/link-check.js";
 export { BIBTEX, citekeysMissing, exportLibrary } from "./services/export.js";
 export { enrichLibrary } from "./services/enrich.js";
 export { OpenAlexBudgetError, withApiKey } from "./services/openalex-works.js";
-export { DATA_DIR as CO_CITATION_DIR, downloadCitingSet, listAnalyses, outputsFor, readAnalysis, runCoCitation, saveAnalysisSettings, subfieldsOf } from "./services/co-citation.js";
+export { DATA_DIR as CO_CITATION_DIR, downloadCitingSet, downloadState, listAnalyses, outputsFor, readAnalysis, runCoCitation, saveAnalysisSettings, subfieldsOf } from "./services/co-citation.js";
 
 // adapters
 export { memoryFolder } from "./adapters/memory-folder.js";

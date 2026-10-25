@@ -5,5 +5,6 @@ import { cluster } from "./cluster.js";
 import { links } from "./links.js";
 import { exportPage } from "./export.js";
 import { enrich } from "./enrich.js";
+import { coCitation } from "./co-citation.js";
 
-export const TOOLS = [overview, cluster, enrich, links, exportPage];
+export const TOOLS = [overview, cluster, coCitation, enrich, links, exportPage];
