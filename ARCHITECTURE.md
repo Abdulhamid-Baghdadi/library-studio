@@ -26,6 +26,22 @@ This file is the app's design authority. It was written on 2026-10-11, before th
 A comparison would name the commit it is compared against and list each departure here, with why, date and whether it
 is worth proposing back; the user decides what goes back.
 
+```mermaid
+flowchart TD
+    DR["<b>UA-SMARTLab/design-rules</b><br/>on GitHub, shared by all projects<br/>rules · skill · bibliography"]
+    AR["<b>This project's ARCHITECTURE.md</b><br/>in git · the project's design authority<br/>the rules in this project's names<br/>departures: rule · why · date · propose back?"]
+    CH["<b>architecture.json</b> and<br/>the project's own tests"]
+    US(["The user, or a session<br/>on the user's word"])
+
+    DR -- "1. not taken yet: this file<br/>came first, not compared" --> AR
+    US -- "2. a rule added, changed or dropped:<br/>edited here, never upstream" --> AR
+    AR -- "3. held by" --> CH
+    AR -. "4. proposed back;<br/>the user decides" .-> DR
+    DR -. "5. a later change upstream:<br/>taken in only on purpose" .-> AR
+```
+
+Solid arrows happen every time; dashed ones only when the user chooses.
+
 ## Layers
 
 | Layer | Folder | Contains | May import |
