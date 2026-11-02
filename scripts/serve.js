@@ -1,4 +1,5 @@
-// Development server: serves the repository as static files (the app is plain ES modules, no build step).
+// Development server: serves the repository as static files (the app is plain ES modules, no build step), to this
+// computer only: it listens on 127.0.0.1, never on the network.
 //   node scripts/serve.js [port] [--fixture <vault folder>]   then open http://localhost:<port>/web/
 // --fixture serves a vault folder on disk at /fixture/ (manifest.json + files/…), so the app can copy it into
 // the browser's own storage and open it without the folder picker (for automated testing; see web/dev.js).
@@ -57,4 +58,4 @@ createServer(async (req, res) => {
     return;
   }
   res.writeHead(200, { ...headers, "Content-Type": TYPES[extname(path)] ?? "application/octet-stream" }).end(body);
-}).listen(PORT, () => console.log(`Library Studio: http://localhost:${PORT}/web/${FIXTURE ? `  (fixture: ${FIXTURE})` : ""}`));
+}).listen(PORT, "127.0.0.1", () => console.log(`Library Studio: http://127.0.0.1:${PORT}/web/${FIXTURE ? `  (fixture: ${FIXTURE})` : ""}`));

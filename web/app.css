@@ -8,10 +8,10 @@
 .start-side-foot a.btn, .side-foot a.btn { text-decoration: none; }
 .start-main { overflow: auto; min-width: 0; padding: 56px clamp(16px, 5vw, 64px) 40px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-content: start;
   background: radial-gradient(900px 420px at 85% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
-    radial-gradient(700px 360px at 0% 0%, color-mix(in srgb, #06b6d4 10%, transparent), transparent 70%), var(--bg); }
+    radial-gradient(700px 360px at 0% 0%, color-mix(in srgb, var(--accent-3) 10%, transparent), transparent 70%), var(--bg); }
 .start-hero { max-width: 760px; display: grid; gap: 14px; justify-items: start; }
 .start-hero h1 { font-size: clamp(30px, 4.4vw, 46px); line-height: 1.08; letter-spacing: -.02em; margin: 4px 0 0; }
-.start-hero .grad { background: linear-gradient(90deg, var(--accent), #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.start-hero .grad { background: linear-gradient(90deg, var(--accent), var(--accent-3)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .start-hero .lead { font-size: 16.5px; color: var(--muted); margin: 0; max-width: 660px; }
 #startBody { display: grid; gap: 14px; width: 100%; margin-top: 6px; }
 .start-actions { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -76,7 +76,7 @@ dialog.modal.wide { width: min(900px, 94vw); }
 .steps8 { display: grid; gap: 6px; }
 .s8 { display: grid; grid-template-columns: 26px 1fr; gap: 8px; align-items: start; padding: 6px 8px; border-radius: 10px; }
 .s8 .ic { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: grid; place-items: center; font-size: 11px; }
-.s8.done .ic { background: var(--ok); border-color: var(--ok); color: #fff; }
+.s8.done .ic { background: var(--ok); border-color: var(--ok); color: var(--ok-ink); }
 .s8.now { background: var(--accent-2); }
 .s8.now .ic { border-color: var(--accent); border-right-color: transparent; animation: spin .8s linear infinite; }
 .s8 .d { font-size: 12px; color: var(--muted); }

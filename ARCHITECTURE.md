@@ -80,10 +80,22 @@ rule.
 
 - **The README shows no pictures** (2026-11-02): no animation of the main task, no light and dark screenshots, no
   diagram of its parts. To do: by the skill's `readme.md`.
-- **A few colours outside the tokens** (2026-11-02): white text on status colours (`#fff`) and the start page's cyan
-  gradient (`#06b6d4`) are written in place, not as tokens, so dark mode cannot change them. To do: tokens.
-- **Not compared yet**: the rest of the UI rules (contrast, keyboard, targets, crowded views, feedback times), which
-  need the app open in the browser pane in light, dark, by keyboard and at phone width.
+- **Headings skip a level** (2026-11-02): every page goes from its `h1` straight to `h3` (cards) or `h4` (settings
+  groups), so a screen reader's list of headings has a gap. To do: cards' titles `h2`, the groups under them `h3`,
+  with the CSS following.
+- **Not judged yet**: crowded views (one idea and one primary button per view) and feedback times, which need a
+  person's eye on a real library rather than a measurement.
+
+The UI was compared on 2026-11-02 in the browser pane, on the synthetic library of `tests/unit/fixtures/library.js`,
+all six pages, with the measured checks of the Scoping Review Workbench's UI audit (`tests/smoke/a11y.mjs` there):
+contrast, target sizes, names of buttons and fields, reflow at 320 px, each in light and dark, with transitions off.
+What agrees: contrast, targets and names on every page in both themes; a visible focus outline and every page reached by
+keyboard; reduced motion respected (one rule stops every animation and transition). Fixed the same day, each with its
+test: white text on the green and red status colours (3.30:1 on green in light, 1.74:1 in dark) now takes the token
+that reaches 4.5:1 in each theme, and no colour is written outside the tokens (`tests/unit/theme.test.js`); the
+Co-citation page no longer scrolls sideways at 320 px (its grid's column could not shrink below its content, and a long
+button label did not wrap); the development server listens on 127.0.0.1 only, not on every network address
+(`tests/unit/serve.test.js`).
 
 ## Tests
 
