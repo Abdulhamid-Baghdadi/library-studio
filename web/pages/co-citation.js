@@ -212,7 +212,7 @@ function settingsCard(ctx, S) {
 
   return h("div", { class: "card settings cc-settings" },
     picker,
-    h("h4", {}, "1 · Citing papers (OpenAlex)"),
+    h("h2", {}, "1 · Citing papers (OpenAlex)"),
     h("label", { class: "field cc-field", for: id("query") }, h("span", {}, "Search ", q("query", "Search")), queryBox,
       h("span", { class: "small cc-err", id: "cc-query-problem", role: "alert" }, S.query ? problem : "")),
     h("div", { class: "cc-years", role: "group", "aria-label": "Publication years" },
@@ -224,17 +224,17 @@ function settingsCard(ctx, S) {
     text("language", "Language"),
     h("div", { class: "cc-row" }, fieldList, q("fields", "Fields")),
     downloadBox(),
-    h("h4", {}, "2 · Filter (no credits)"),
+    h("h2", {}, "2 · Filter (no credits)"),
     h("div", { class: "set wide" }, core, q("coreOnly", "Core sources only")), sub,
-    h("h4", {}, "3 · Phases"), phaseRows, h("div", { class: "row" }, addPhase, q("phases", "Phases")),
-    h("h4", {}, "4 · Maps"),
+    h("h2", {}, "3 · Phases"), phaseRows, h("div", { class: "row" }, addPhase, q("phases", "Phases")),
+    h("h2", {}, "4 · Maps"),
     num("overallThreshold", "Citations, all-years map"), num("phaseThreshold", "Citations, phase map"), num("linkThreshold", "Co-citations for a line"),
     h("details", { class: "fold" }, h("summary", {}, "Clustering and layout"),
       num("resolution", "Resolution", "0.1"), num("runs", "Leiden runs"), num("layoutStarts", "Layout starts")),
-    h("h4", {}, "5 · Cleaning"),
+    h("h2", {}, "5 · Cleaning"),
     h("label", { class: "field cc-field", for: id("corrections") }, h("span", {}, "Corrections ", q("corrections", "Corrections")), corrections,
       h("span", { class: "small cc-err", id: "cc-corr-errors", role: "alert" }, errors.map(e => `Line ${e.line}: ${e.why}.`).join(" "))),
-    h("h4", {}, "6 · Output"),
+    h("h2", {}, "6 · Output"),
     text("outputDir", "VOSviewer files and figure"), text("notePath", "Evidence-synthesis note"),
     h("div", { class: "runbox" }, runBtn),
     h("div", { class: "row" }, btn("Mertens et al. 2023 settings…", async () => {
@@ -485,7 +485,7 @@ function phaseView(ctx, R) {
   function drawPhase() {
     const sc = SC[V.s];
     const stat = (v, k) => h("div", { class: "cc-stat" }, h("span", { class: "v" }, v), h("span", { class: "k" }, k));
-    phaseCard.replaceChildren(h("h3", {}, `${sc.phase} · ${sc.name}`),
+    phaseCard.replaceChildren(h("h2", {}, `${sc.phase} · ${sc.name}`),
       h("div", { class: "cc-stats" }, stat(fmt(sc.citing), "citing papers"), stat(sc.nodes.length, "works"), stat(sc.clusters.length, "clusters"),
         stat(fmt(sc.links.length), "lines"), stat(sc.density.toFixed(3), "density")),
       h("p", { class: "small muted" }, `Works with at least ${sc.threshold} citations by the ${fmt(sc.citing)} papers of ${sc.name}; on average ${sc.refsAvg.toFixed(1)} references per paper.`));
@@ -496,7 +496,7 @@ function phaseView(ctx, R) {
   };
   function drawClusters() {
     const sc = SC[V.s];
-    clusterCard.replaceChildren(h("h3", {}, "Clusters in this map"),
+    clusterCard.replaceChildren(h("h2", {}, "Clusters in this map"),
       h("ul", { class: "cc-clusters" }, sc.clusters.map((c, j) => {
         const mixText = order.filter(p => new Map(c.mix).get(p.k)).map(p => `${new Map(c.mix).get(p.k)} ${P.get(p.k)}`).join(", ");
         const li = h("li", { class: "cc-cl" + (V.hlLock === c.k ? " on" : ""),
@@ -511,12 +511,12 @@ function phaseView(ctx, R) {
   function drawWork() {
     const i = V.sel;
     if (i === null) {
-      workCard.replaceChildren(h("h3", {}, "Selected work"), h("p", { class: "small muted" }, "Click a dot (or Tab to it and press Enter), or a work under Works, to see its citations per phase and the works it is cited with most."));
+      workCard.replaceChildren(h("h2", {}, "Selected work"), h("p", { class: "small muted" }, "Click a dot (or Tab to it and press Enter), or a work under Works, to see its citations per phase and the works it is cited with most."));
       return;
     }
     const n = N[i], s = V.s, sc = SC[s];
     const partners = sc.links.filter(l => l[0] === i || l[1] === i).map(([a, b, c]) => [a === i ? b : a, c]).sort((x, y) => y[1] - x[1]).slice(0, 6);
-    workCard.replaceChildren(...[h("h3", { tabindex: "-1" }, n.label),
+    workCard.replaceChildren(...[h("h2", { tabindex: "-1" }, n.label),
       h("p", { class: "small" }, n.title, n.source ? h("span", { class: "muted" }, ` · ${n.source}`) : null),
       h("div", { class: "row small" }, h("span", { class: "cc-key" }, h("span", { class: "sw", style: `background:${perspColour(R, n.persp)}`, "aria-hidden": "true" }), P.get(n.persp) ?? "no perspective"),
         n.doi ? h("a", { href: `https://doi.org/${n.doi}`, target: "_blank", rel: "noopener" }, "DOI ↗") : null,
@@ -552,7 +552,7 @@ function phaseView(ctx, R) {
     drawWork(); drawMap();
     if (V.sel !== null && matchMedia("(max-width: 1000px)").matches) workCard.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "nearest" });
     if (fromMap) svg.querySelector(`.cc-hit[data-i="${i}"]`)?.focus();
-    else workCard.querySelector("h3")?.focus();
+    else workCard.querySelector("h2")?.focus();
   }
   function setScope(s) {
     V.s = s;
@@ -668,10 +668,10 @@ function dataTab(ctx, A) {
           } }))))));
   const c = R.cleaning;
   const clean = card("Cleaning", "What the run merged and dropped. Add merge, drop or label lines under Cleaning on the left when a record is wrong; the ids are OpenAlex work ids.",
-    c.merged.length ? h("div", {}, h("h4", { class: "cc-h4" }, `Merged: ${c.merged.length} works counted from several records`),
+    c.merged.length ? h("div", {}, h("h3", { class: "cc-h4" }, `Merged: ${c.merged.length} works counted from several records`),
       h("table", { class: "tbl" }, h("tr", {}, h("th", {}, "Work"), h("th", {}, "Records (id · year · citations · title)")),
         c.merged.map(g => h("tr", {}, h("td", {}, g.label), h("td", { class: "small" }, g.members.map(m => h("div", {}, h("code", {}, m.id), ` · ${m.year || "—"} · ${m.cites} · ${m.title}`))))))) : h("p", { class: "small muted" }, "No records were merged."),
-    c.dropped.length ? h("div", {}, h("h4", { class: "cc-h4" }, `Dropped: ${c.dropped.length} records`),
+    c.dropped.length ? h("div", {}, h("h3", { class: "cc-h4" }, `Dropped: ${c.dropped.length} records`),
       h("table", { class: "tbl" }, h("tr", {}, h("th", {}, "Record"), h("th", {}, "Why"), h("th", { class: "num" }, "Citations")),
         c.dropped.map(d => h("tr", {}, h("td", {}, h("code", {}, d.id), d.title ? ` ${d.title}` : ""), h("td", {}, d.why === "correction" ? "by a correction" : "OpenAlex no longer has it (deleted or merged)"), h("td", { class: "num" }, d.cites))))) : null,
     c.missing.length ? h("div", { class: "callout warn small", style: "margin-top:10px" }, `${c.missing.length} works reach a threshold but have no metadata yet, so they are not shown: ${c.missing.map(m => m.id).join(", ")}. Run again with a connection to OpenAlex to look them up.`) : null,

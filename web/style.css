@@ -66,7 +66,7 @@ a { color: var(--accent); }
 
 /* ---------- surfaces ---------- */
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 20px; margin-bottom: 16px; }
-.card h3 { margin: 0 0 4px; font-size: 15.5px; }
+.card h2, .card h3 { margin: 0 0 4px; font-size: 15.5px; }
 .card .sub { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
 .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }

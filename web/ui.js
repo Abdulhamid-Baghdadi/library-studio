@@ -25,8 +25,9 @@ export function h(tag, props, ...kids) {
 
 export const btn = (label, onclick, cls = "", attrs = {}) => h("button", { class: `btn ${cls}`, type: "button", onclick, ...attrs }, label);
 export const pill = (text, kind = "") => h("span", { class: `pill ${kind}` }, text);
-export const card = (title, sub, ...kids) => h("div", { class: "card" }, title ? h("h3", {}, title) : null, sub ? h("p", { class: "sub" }, sub) : null, ...kids);
-export const empty = (icon, title, text) => h("div", { class: "card empty" }, h("div", { class: "big", "aria-hidden": "true" }, icon), h("h3", {}, title), h("p", {}, text));
+// A card's title is an h2, under the page's h1, so headings never skip a level (WCAG 1.3.1).
+export const card = (title, sub, ...kids) => h("div", { class: "card" }, title ? h("h2", {}, title) : null, sub ? h("p", { class: "sub" }, sub) : null, ...kids);
+export const empty = (icon, title, text) => h("div", { class: "card empty" }, h("div", { class: "big", "aria-hidden": "true" }, icon), h("h2", {}, title), h("p", {}, text));
 
 export function toast(text, kind = "") {
   const t = h("div", { class: `toast ${kind}`, role: "status" }, text);

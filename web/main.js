@@ -80,7 +80,7 @@ async function startScreen() {
     btn("Open →", () => openVault(v).catch(explain), "sm primary")));
   $("#startBody").replaceChildren(...[
     h("div", { class: "start-actions" }, btn("📂 Open a vault folder…", () => openFolder().catch(explain), "primary")),
-    list.length ? h("div", { class: "recents" }, h("h3", {}, "Open again"), ...list) : null,
+    list.length ? h("div", { class: "recents" }, h("h2", {}, "Open again"), ...list) : null,
     h("p", { class: "start-msg small muted" }, "Works in Chrome or Edge on a computer. The browser asks once per visit before the app may use a folder."),
   ].filter(Boolean));
   $("#start").hidden = false;

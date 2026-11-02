@@ -80,9 +80,6 @@ rule.
 
 - **The README shows no pictures** (2026-11-02): no animation of the main task, no light and dark screenshots, no
   diagram of its parts. To do: by the skill's `readme.md`.
-- **Headings skip a level** (2026-11-02): every page goes from its `h1` straight to `h3` (cards) or `h4` (settings
-  groups), so a screen reader's list of headings has a gap. To do: cards' titles `h2`, the groups under them `h3`,
-  with the CSS following.
 - **Not judged yet**: crowded views (one idea and one primary button per view) and feedback times, which need a
   person's eye on a real library rather than a measurement.
 
@@ -95,7 +92,9 @@ test: white text on the green and red status colours (3.30:1 on green in light, 
 that reaches 4.5:1 in each theme, and no colour is written outside the tokens (`tests/unit/theme.test.js`); the
 Co-citation page no longer scrolls sideways at 320 px (its grid's column could not shrink below its content, and a long
 button label did not wrap); the development server listens on 127.0.0.1 only, not on every network address
-(`tests/unit/serve.test.js`).
+(`tests/unit/serve.test.js`); headings no longer skip a level: a page's `h1`, then each card's title and each settings
+group an `h2`, a heading inside a card an `h3`, the CSS following so nothing looks different
+(`tests/unit/headings.test.js`; measured again in the browser, no finding on any page in either theme).
 
 ## Tests
 
