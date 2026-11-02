@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430" width="760" height="430" role="img" aria-labelledby="t d">
+  <title id="t">How Library Studio is built</title>
+  <desc id="d">Layers, top to bottom. The pages in the browser and the command line use the engine through its one front door, src/index.js. Behind it the services carry out each tool's use case, using the pure domain rules and the ports. Adapters fill the ports: the vault folder on this computer and OpenAlex over the internet. Nothing else leaves the computer.</desc>
+  <style>
+    svg { --bg: #ffffff; --box: #f1f3f9; --line: #c9cedb; --ink: #0f172a; --muted: #5b6477; --accent: #4f46e5; --accent-bg: #eef0ff; --ok: #15803d; --ok-bg: #e9f9ef; }
+    @media (prefers-color-scheme: dark) {
+      svg { --bg: #0d1017; --box: #1c2230; --line: #3a4560; --ink: #e6e9f2; --muted: #a3acc0; --accent: #a5a0ff; --accent-bg: #24243f; --ok: #4ade80; --ok-bg: #12291c; }
+    }
+    .bg { fill: var(--bg); }
+    .box { fill: var(--box); stroke: var(--line); stroke-width: 1.2; }
+    .door { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.6; }
+    .place { fill: var(--ok-bg); stroke: var(--ok); stroke-width: 1.4; }
+    text { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; fill: var(--ink); font-size: 14px; }
+    .name { font-weight: 600; }
+    .small { font-size: 12px; fill: var(--muted); }
+    .layer { font-size: 11px; fill: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+    .arrow { stroke: var(--muted); stroke-width: 1.4; fill: none; marker-end: url(#a); }
+    .arrowhead { fill: var(--muted); }
+  </style>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrowhead" d="M0 0 10 5 0 10z"/></marker></defs>
+  <rect class="bg" width="760" height="430"/>
+
+  <text class="layer" x="20" y="34">Boot · pages</text>
+  <rect class="box" x="130" y="14" width="300" height="56" rx="10"/>
+  <text class="name" x="146" y="38">The pages in the browser</text>
+  <text class="small" x="146" y="57">one page per tool · web/</text>
+  <rect class="box" x="450" y="14" width="190" height="56" rx="10"/>
+  <text class="name" x="466" y="38">Command line</text>
+  <text class="small" x="466" y="57">bin/library-studio.js</text>
+
+  <text class="layer" x="20" y="116">Public API</text>
+  <rect class="door" x="130" y="94" width="510" height="44" rx="10"/>
+  <text class="name" x="146" y="121">src/index.js, the one front door</text>
+  <path class="arrow" d="M280 70v22"/><path class="arrow" d="M545 70v22"/>
+
+  <text class="layer" x="20" y="184">Services</text>
+  <rect class="box" x="130" y="160" width="510" height="56" rx="10"/>
+  <text class="name" x="146" y="184">The use cases</text>
+  <text class="small" x="146" y="203">open the library · cluster · co-citation phases · enrich · link check · export</text>
+  <path class="arrow" d="M385 138v20"/>
+
+  <text class="layer" x="20" y="262">Domain · ports</text>
+  <rect class="box" x="130" y="238" width="300" height="56" rx="10"/>
+  <text class="name" x="146" y="262">Pure rules and formats</text>
+  <text class="small" x="146" y="281">notes, Leiden, VOS, export · no I/O</text>
+  <rect class="box" x="450" y="238" width="190" height="56" rx="10"/>
+  <text class="name" x="466" y="262">Ports</text>
+  <text class="small" x="466" y="281">Folder · Http</text>
+  <path class="arrow" d="M280 216v20"/><path class="arrow" d="M545 216v20"/>
+
+  <text class="layer" x="20" y="340">Adapters</text>
+  <rect class="box" x="450" y="316" width="190" height="56" rx="10"/>
+  <text class="name" x="466" y="340">Adapters</text>
+  <text class="small" x="466" y="359">browser · Node · fetch</text>
+  <path class="arrow" d="M545 316v-20"/>
+
+  <rect class="place" x="130" y="386" width="300" height="36" rx="10"/>
+  <text class="name" x="146" y="409">Your vault folder, on this computer</text>
+  <rect class="box" x="450" y="386" width="190" height="36" rx="10"/>
+  <text class="name" x="466" y="409">OpenAlex</text>
+  <path class="arrow" d="M480 372 C470 380 440 392 432 400"/>
+  <path class="arrow" d="M560 372v12"/>
+  <text class="small" x="652" y="409">metadata only</text>
+</svg>

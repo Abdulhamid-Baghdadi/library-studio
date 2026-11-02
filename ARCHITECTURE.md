@@ -78,8 +78,6 @@ through CSS tokens.
 None of these is worth proposing back (a suggestion; the user decides): each is work not yet done here, not a better
 rule.
 
-- **The README shows no pictures** (2026-11-02): no animation of the main task, no light and dark screenshots, no
-  diagram of its parts. To do: by the skill's `readme.md`.
 - **Not judged yet**: crowded views (one idea and one primary button per view) and feedback times, which need a
   person's eye on a real library rather than a measurement.
 
@@ -102,6 +100,7 @@ group an `h2`, a heading inside a card an `h3`, the CSS following so nothing loo
 |---|---|---|
 | Unit | `tests/unit/` | `npm test` |
 | Architecture | `scripts/check-architecture.js` reads `architecture.json`; `tests/unit/architecture.test.js` holds each break of the layering contract on a small project made for the test, and that this repository has none. Taken from the Scoping Review Workbench's check on 2026-11-02; the design rules' audit tool gives the same 114 uses and 0 findings | `npm run check`, `npm test` |
+| README pictures | `tests/unit/readme.test.js`: every picture the README shows is there with alt text, and each animation plays once within 5 s. The animation and the light and dark screenshots are made from the app itself on the example library of the tests by `node scripts/record-readme.mjs` (headless Edge or Chrome, ffmpeg); the diagram `docs/readme/how-it-works.svg` is drawn by hand. Make them again when the look changes | `npm test` |
 | Citations | `tests/unit/design-citations.test.js`: every "Author (Year)" in a bibliography, the design rules' or this project's `bibliography.json` (11 subject papers, each matched against its record on 2026-11-02) | `npm test` |
 
 The graph algorithms have their own tests (planted partitions, comparison with the reference formulas). The whole pipeline was also compared with the Python analysis it replaces on a real library: same vocabulary, same edges and weights, identical partition.

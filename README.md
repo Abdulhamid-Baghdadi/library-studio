@@ -2,11 +2,22 @@
 
 **A workbench for a publication library kept as Obsidian notes. It runs in your browser and works directly on the vault folder on your own PC.**
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/readme/cluster-dark.gif">
+  <img src="docs/readme/cluster-light.gif" width="600" alt="Cluster discovery on an example library of eight papers: Run analysis is pressed, the result appears (3 clusters, modularity 0.325), and the map shows the papers as dots joined by their links, coloured by cluster.">
+</picture>
+
+*Cluster discovery, run once on the example library of the tests (eight made-up papers, not a real vault).*
+
 **[▶ Open it in your browser](https://abdulhamid-baghdadi.github.io/library-studio/)** · Chrome or Edge on a computer · or run it locally with `Start Library Studio.cmd`
 
 The library is a folder of publication notes (`00 - Library/Publication Summary/NNN - Year - Authors - Title.md`, `type: publication`), with the PDFs in `00 - Library/PDFs` (older layouts with the notes directly in `00 - Library` or in `98 - Publications` are still found). Library Studio reads those notes and writes its results back into the vault; nothing is uploaded, there is no account, and everything it writes is a plain Markdown note, a JSON file or an export file.
 
 ## The tools
+
+<img src="docs/readme/library-light.png" width="49%" alt="The Library page in the light theme: counts of notes, DOIs, PDFs, concept maps and tags; papers per concept map; reading status and the most used tags."> <img src="docs/readme/library-dark.png" width="49%" alt="The same Library page in the dark theme.">
+
+*The Library page in light and dark, on the same example library.*
 
 | Tool | What it does | Writes |
 |---|---|---|
@@ -76,6 +87,12 @@ The whole analysis is deterministic for a given seed and runs in about a second 
 ## For developers
 
 Plain JavaScript (ES modules), no framework, no bundler, no dependencies. The code is split into layers (domain rules, ports, services, adapters, UI); see [ARCHITECTURE.md](ARCHITECTURE.md).
+
+![Layers, top to bottom: the pages in the browser and the command line use the engine through its one front door, src/index.js; the services carry out each tool's use case with the pure domain rules and the ports; adapters fill the ports with the vault folder on this computer and OpenAlex, which gives metadata only.](docs/readme/how-it-works.svg)
+
+The pictures in this README are made by `node scripts/record-readme.mjs` from the app itself, on the example library
+of the tests; run it again when the look changes. The diagram is drawn by hand (`docs/readme/how-it-works.svg`) and
+follows the reader's light or dark theme.
 
 ```
 npm test                 # unit tests
