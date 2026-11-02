@@ -22,9 +22,8 @@ Library Studio is a browser app whose data is an Obsidian vault folder on the us
 ## Design authority
 
 This file is the app's design authority. It was written on 2026-10-11, before the shared design rules
-([UA-SMARTLab/design-rules](https://github.com/UA-SMARTLab/design-rules)) existed, and has not been compared with them yet: no starting commit, no departures listed.
-A comparison would name the commit it is compared against and list each departure here, with why, date and whether it
-is worth proposing back; the user decides what goes back.
+([UA-SMARTLab/design-rules](https://github.com/UA-SMARTLab/design-rules)) existed, and was compared with them at commit
+[`bf1d0d0`](https://github.com/UA-SMARTLab/design-rules/tree/bf1d0d0) on 2026-11-02; since then the app changes its own rules here and never the shared ones.
 
 ```mermaid
 flowchart TD
@@ -33,7 +32,7 @@ flowchart TD
     CH["<b>architecture.json</b> and<br/>the project's own tests"]
     US(["The user, or a session<br/>on the user's word"])
 
-    DR -- "1. not taken yet: this file<br/>came first, not compared" --> AR
+    DR -- "1. compared once, at commit bf1d0d0<br/>(this file came first)" --> AR
     US -- "2. a rule added, changed or dropped:<br/>edited here, never upstream" --> AR
     AR -- "3. held by" --> CH
     AR -. "4. proposed back;<br/>the user decides" .-> DR
@@ -60,6 +59,32 @@ Solid arrows happen every time; dashed ones only when the user chooses.
 - **Effects at the edges.** Dates, ids and file access are passed in; domain functions return values instead of writing. The analysis is a pure function of the notes and the settings (seeded randomness), so a run can be reproduced.
 - **One module, one concern**, named after what it is about, with its API documented at the top.
 - **Public API.** Code outside `src/` (web, bin, tests of the API) imports from `src/index.js`.
+
+## Where it departs from the design rules
+
+Compared on 2026-11-02 with the design rules at `bf1d0d0`, by reading the code and running `npm run check`,
+`npm test` (123 pass), the design rules' citation check and a one-off search for import cycles (55 modules, none).
+What agrees: the layers by the uses relation, one front door (`src/index.js`), no cycles, a pure domain (no clock or
+`Math.random`; randomness only seeded through `random.js`), plain ES modules with no framework and no packages
+(`scripts/build-site.js` only copies the files, no bundler), the vault's formats kept stable, light and dark themes
+through CSS tokens.
+
+None of these is worth proposing back (a suggestion; the user decides): each is work not yet done here, not a better
+rule.
+
+- **The layering check is not in the contract's form** (2026-11-02): `scripts/check-architecture.js` keeps its layer
+  table in the code, not in an `architecture.json`, and does not look for cycles, so the design rules' audit tool
+  cannot read it or draw the dependency matrix. To do: an `architecture.json`, a cycle test, the matrix.
+- **The subject's sources are not in a bibliography** (2026-11-02): the help and the code cite 13 papers on community
+  detection and bibliometric mapping, from the Louvain method to VOS mapping and co-citation phases,
+  that no `bibliography.json` lists, and no test runs the citation check. To do: the project's own
+  `bibliography.json`, each record checked, and the design rules' citation test.
+- **The README shows no pictures** (2026-11-02): no animation of the main task, no light and dark screenshots, no
+  diagram of its parts. To do: by the skill's `readme.md`.
+- **A few colours outside the tokens** (2026-11-02): white text on status colours (`#fff`) and the start page's cyan
+  gradient (`#06b6d4`) are written in place, not as tokens, so dark mode cannot change them. To do: tokens.
+- **Not compared yet**: the rest of the UI rules (contrast, keyboard, targets, crowded views, feedback times), which
+  need the app open in the browser pane in light, dark, by keyboard and at phone width.
 
 ## Tests
 
