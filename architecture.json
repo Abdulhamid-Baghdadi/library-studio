@@ -1,0 +1,20 @@
+{
+  "format": "design-rules architecture",
+  "version": 1,
+  "name": "Library Studio",
+  "about": "The layers of ARCHITECTURE.md, bottom first. Domain, ports and services import no platform module or package, so they run unchanged in Node and the browser. The service worker, the install buttons and the development helper are plain scripts, not modules, and are left out.",
+  "reader": "es-modules",
+  "sources": ["src/**/*.js", "web/**/*.js", "bin/**/*.js", "!web/sw.js", "!web/install.js", "!web/dev.js"],
+  "layers": [
+    {"name": "domain", "why": "pure rules and formats", "files": ["src/domain/**/*.js"], "uses": [], "packages": []},
+    {"name": "ports", "why": "what the services need from outside: Folder, Http", "files": ["src/ports/**/*.js"], "uses": ["domain"], "packages": []},
+    {"name": "services", "why": "the use cases", "files": ["src/services/**/*.js"], "uses": ["domain", "ports"], "packages": []},
+    {"name": "adapters", "why": "the ports for each platform", "files": ["src/adapters/**/*.js"], "uses": ["domain", "ports"]},
+    {"name": "public API", "why": "src/index.js, the one front door", "files": ["src/index.js"], "uses": ["domain", "ports", "services", "adapters"]},
+    {"name": "engine ui", "why": "backend.js: the open vault and one method per tool", "files": ["src/ui/**/*.js"], "uses": ["public API", "adapters"]},
+    {"name": "page helpers", "why": "DOM helpers and the help texts", "files": ["web/ui.js", "web/help.js"], "uses": []},
+    {"name": "pages", "why": "one module per tool", "files": ["web/pages/**/*.js"], "uses": ["public API", "page helpers"]},
+    {"name": "boot", "why": "the start screen and shell, the workers, the command line", "files": ["web/*.js", "bin/**/*.js", "!web/ui.js", "!web/help.js", "!web/sw.js", "!web/install.js", "!web/dev.js"], "uses": ["pages", "page helpers", "engine ui", "public API", "adapters"]}
+  ],
+  "allow": []
+}

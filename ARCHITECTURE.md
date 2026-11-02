@@ -51,7 +51,13 @@ Solid arrows happen every time; dashed ones only when the user chooses.
 | **adapters** | `src/adapters/` | The ports for each platform: Node file system (command line, tests), in-memory (tests), browser File System Access API, `fetch`, IndexedDB store of opened vaults. | domain, ports, adapters |
 | **ui** | `src/ui/` | `backend.js`: the open vault, its settings, one method per tool; runs the cluster analysis and the co-citation analysis in workers (`web/cluster-worker.js`, `web/co-citation-worker.js`). The page itself is `web/` (`main.js` start screen and shell, `pages/` one module per tool, `ui.js` DOM helpers). | the public API (`src/index.js`), adapters |
 
-`npm run check` enforces the "may import" column and that domain, ports and services use no platform modules, so they run in the browser as they are.
+The table is written for a program in [architecture.json](architecture.json), in the design rules' layering contract,
+with the page's own layers beside it: `web/ui.js` and `web/help.js` (page helpers), `web/pages/` (pages), and the start
+screen, the workers and the command line (boot). `npm run check` holds it: no use of a layer above or one a layer may
+not use, no cycle between modules, no platform module or package in domain, ports and services (so they run in the
+browser as they are), no module in no layer, no import of a file that is not there. When this table and the JSON
+disagree, the JSON is what the check holds: fix this table. The dependency matrix, every module against every other:
+`python ~/.claude/skills/web-app-design/scripts/check_layers.py . --page build/dependencies.html`.
 
 ## Rules
 
@@ -72,9 +78,6 @@ through CSS tokens.
 None of these is worth proposing back (a suggestion; the user decides): each is work not yet done here, not a better
 rule.
 
-- **The layering check is not in the contract's form** (2026-11-02): `scripts/check-architecture.js` keeps its layer
-  table in the code, not in an `architecture.json`, and does not look for cycles, so the design rules' audit tool
-  cannot read it or draw the dependency matrix. To do: an `architecture.json`, a cycle test, the matrix.
 - **The README shows no pictures** (2026-11-02): no animation of the main task, no light and dark screenshots, no
   diagram of its parts. To do: by the skill's `readme.md`.
 - **A few colours outside the tokens** (2026-11-02): white text on status colours (`#fff`) and the start page's cyan
@@ -87,7 +90,7 @@ rule.
 | Kind | Where | Run |
 |---|---|---|
 | Unit | `tests/unit/` | `npm test` |
-| Architecture | `scripts/check-architecture.js` | `npm run check` |
+| Architecture | `scripts/check-architecture.js` reads `architecture.json`; `tests/unit/architecture.test.js` holds each break of the layering contract on a small project made for the test, and that this repository has none. Taken from the Scoping Review Workbench's check on 2026-11-02; the design rules' audit tool gives the same 114 uses and 0 findings | `npm run check`, `npm test` |
 | Citations | `tests/unit/design-citations.test.js`: every "Author (Year)" in a bibliography, the design rules' or this project's `bibliography.json` (11 subject papers, each matched against its record on 2026-11-02) | `npm test` |
 
 The graph algorithms have their own tests (planted partitions, comparison with the reference formulas). The whole pipeline was also compared with the Python analysis it replaces on a real library: same vocabulary, same edges and weights, identical partition.
