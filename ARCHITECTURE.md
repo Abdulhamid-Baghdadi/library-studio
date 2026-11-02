@@ -75,10 +75,6 @@ rule.
 - **The layering check is not in the contract's form** (2026-11-02): `scripts/check-architecture.js` keeps its layer
   table in the code, not in an `architecture.json`, and does not look for cycles, so the design rules' audit tool
   cannot read it or draw the dependency matrix. To do: an `architecture.json`, a cycle test, the matrix.
-- **The subject's sources are not in a bibliography** (2026-11-02): the help and the code cite 13 papers on community
-  detection and bibliometric mapping, from the Louvain method to VOS mapping and co-citation phases,
-  that no `bibliography.json` lists, and no test runs the citation check. To do: the project's own
-  `bibliography.json`, each record checked, and the design rules' citation test.
 - **The README shows no pictures** (2026-11-02): no animation of the main task, no light and dark screenshots, no
   diagram of its parts. To do: by the skill's `readme.md`.
 - **A few colours outside the tokens** (2026-11-02): white text on status colours (`#fff`) and the start page's cyan
@@ -92,5 +88,6 @@ rule.
 |---|---|---|
 | Unit | `tests/unit/` | `npm test` |
 | Architecture | `scripts/check-architecture.js` | `npm run check` |
+| Citations | `tests/unit/design-citations.test.js`: every "Author (Year)" in a bibliography, the design rules' or this project's `bibliography.json` (11 subject papers, each matched against its record on 2026-11-02) | `npm test` |
 
 The graph algorithms have their own tests (planted partitions, comparison with the reference formulas). The whole pipeline was also compared with the Python analysis it replaces on a real library: same vocabulary, same edges and weights, identical partition.
