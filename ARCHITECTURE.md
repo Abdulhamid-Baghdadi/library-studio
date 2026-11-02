@@ -22,7 +22,7 @@ Library Studio is a browser app whose data is an Obsidian vault folder on the us
 ## Design authority
 
 This file is the app's design authority. It was written on 2026-10-11, before the shared design rules
-(UA-SMARTLab/design-rules) existed, and has not been compared with them yet: no starting commit, no departures listed.
+([UA-SMARTLab/design-rules](https://github.com/UA-SMARTLab/design-rules)) existed, and has not been compared with them yet: no starting commit, no departures listed.
 A comparison would name the commit it is compared against and list each departure here, with why, date and whether it
 is worth proposing back; the user decides what goes back.
 
