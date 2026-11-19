@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bodyLinks, citedByOf, libraryRoot, paperLabel, readPublication, section } from "../../src/domain/publications.js";
+import { bodyLinks, citedByOf, isNoteName, libraryRoot, paperLabel, readPublication, section } from "../../src/domain/publications.js";
 
 const NOTE = [
   "---", "type: publication", "index: 5", "authors: Ulrich", "year: 1995",
@@ -68,4 +68,12 @@ test("section and bodyLinks", () => {
   assert.equal(section("## A\nlast", "A"), "last");
   assert.equal(section("## B\n", "A"), "");
   assert.deepEqual([...bodyLinks("[[X|alias]] [[Y#head]] ![[Z.png]]")], ["X", "Y", "Z.png"]);
+});
+
+test("a four-digit note from No. 1000 is a publication note, and its number is read whole (by definition; the library reached 999 on 19 Nov 2026)", () => {
+  assert.ok(isNoteName("1000 - 2018 - Baldwin - Introducing Open Platforms and Ecosystems.md"));
+  assert.ok(isNoteName("005 - 1995 - Ulrich - The Role of Product Architecture.md"));
+  assert.ok(!isNoteName("10000 - x.md") && !isNoteName("99 - x.md"));
+  const p = readPublication("1000 - 2018 - Baldwin - Introducing Open Platforms and Ecosystems", "---\ntype: publication\ntitle: T\n---\n");
+  assert.equal(p.no, 1000);
 });

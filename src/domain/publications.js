@@ -44,7 +44,8 @@ const joined = (v, sep) => asList(v).map(String).filter(Boolean).join(sep);
 const linkTargets = v => asList(v).map(String).filter(s => new RegExp(`^${WIKILINK.source}$`).test(s.trim())).map(linkTarget);
 
 export const libraryRoot = dir => String(dir).split("/")[0];
-export const isNoteName = name => /^\d{3} - .*\.md$/.test(name);
+// Three digits up to No. 999, four from No. 1000 (the library reached 999 on 19 Nov 2026).
+export const isNoteName = name => /^\d{3,4} - .*\.md$/.test(name);
 
 /** @typedef {ReturnType<typeof readPublication>} Paper */
 
@@ -53,7 +54,7 @@ export function readPublication(stem, text) {
   if (raw == null || props.type !== "publication") return null;
   const parts = stem.split(" - ");
   const index = scalar(props.index);
-  const no = /^\d+$/.test(index) ? Number(index) : /^\d{3}/.test(stem) ? Number(stem.slice(0, 3)) : 0;
+  const no = /^\d+$/.test(index) ? Number(index) : /^\d{3,4} - /.test(stem) ? Number(stem.slice(0, stem.indexOf(" "))) : 0;
   return {
     stem, props, body, no,
     index: index || stem,
