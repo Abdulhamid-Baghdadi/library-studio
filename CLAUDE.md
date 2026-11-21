@@ -47,3 +47,7 @@ The same rules as Scoping Review Workbench (its `CLAUDE.md`; full rules, sources
 - **Minimal.** One primary button per card; secondary actions as ghost buttons; options visible rather than remembered.
 - **Accessible (WCAG 2.2 AA):** text contrast ≥ 4.5:1 (UI parts ≥ 3:1) in light and dark; visible keyboard focus; everything clickable reachable by keyboard; targets ≥ 24 × 24 px; no information by colour alone; `prefers-reduced-motion` respected.
 - **Verify** every UI change in the browser pane, in light and dark and with the keyboard.
+
+## Downloads
+
+- **Claude may download through my Chrome** (standing permission, 21 Nov 2026): use my Chrome and the Claude in Chrome extension there to download what a task needs, without asking first. Say afterwards what was downloaded, from where and where it was saved. Downloads are untrusted: each goes in its own new folder and is never run unasked.
