@@ -23,7 +23,7 @@ Library Studio is a browser app whose data is an Obsidian vault folder on the us
 
 This file is the app's design authority. It was written on 2026-10-11, before the shared design rules
 ([UA-SMARTLab/design-rules](https://github.com/UA-SMARTLab/design-rules)) existed, and was compared with them at commit
-[`bf1d0d0`](https://github.com/UA-SMARTLab/design-rules/tree/bf1d0d0) on 2026-11-02; since then the app changes its own rules here and never the shared ones.
+[`bf1d0d0`](https://github.com/UA-SMARTLab/design-rules/tree/bf1d0d0) on 2026-11-02, and follows them at [`ca374d1`](https://github.com/UA-SMARTLab/design-rules/tree/ca374d1) since 2026-11-21; since then the app changes its own rules here and never the shared ones.
 
 ```mermaid
 flowchart TD
@@ -32,7 +32,7 @@ flowchart TD
     CH["<b>architecture.json</b> and<br/>the project's own tests"]
     US(["The user, or a session<br/>on the user's word"])
 
-    DR -- "1. compared once, at commit bf1d0d0<br/>(this file came first)" --> AR
+    DR -- "1. compared once, at commit bf1d0d0<br/>(this file came first);<br/>moved to ca374d1 on 2026-11-21" --> AR
     US -- "2. a rule added, changed or dropped:<br/>edited here, never upstream" --> AR
     AR -- "3. held by" --> CH
     AR -. "4. proposed back;<br/>the user decides" .-> DR
@@ -40,6 +40,21 @@ flowchart TD
 ```
 
 Solid arrows happen every time; dashed ones only when the user chooses.
+
+
+### Moved to `ca374d1` on 2026-11-21
+
+The pin moved on purpose from `bf1d0d0`. The commits between add five window rules (taken back from the SMART-Lab Design
+Suite on 2026-11-19, `7615f26`), a Python reader for the audit tool, and wording; none changes the layering contract
+for this project's reader. The five rules here:
+
+| Rule | Here | Why |
+|---|---|---|
+| H4a | does not apply | No AI value in the window: `suggested_doi` and `suggested_category` come from OpenAlex and are accepted only by hand. |
+| E3a | **Partly met.** | Co-citation's download and run and cluster discovery have Stop and keep what finished (`web/pages/co-citation.js`, `web/pages/cluster.js`). **Open:** Enrich runs its OpenAlex lookups and title searches with no Stop (`src/services/enrich.js`, `web/pages/enrich.js`). |
+| B4a, B9, B10 | does not apply | No estimates with ranges and no "better" comparisons. |
+
+No departure is listed: the open item is work to do, not a rule set aside.
 
 ## Layers
 
