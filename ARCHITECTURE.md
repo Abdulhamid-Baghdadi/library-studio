@@ -51,10 +51,10 @@ for this project's reader. The five rules here:
 | Rule | Here | Why |
 |---|---|---|
 | H4a | does not apply | No AI value in the window: `suggested_doi` and `suggested_category` come from OpenAlex and are accepted only by hand. |
-| E3a | **Partly met.** | Co-citation's download and run and cluster discovery have Stop and keep what finished (`web/pages/co-citation.js`, `web/pages/cluster.js`). **Open:** Enrich runs its OpenAlex lookups and title searches with no Stop (`src/services/enrich.js`, `web/pages/enrich.js`). |
+| E3a | Met since 2026-11-21 | Co-citation's download and run and cluster discovery have Stop and keep what finished (`web/pages/co-citation.js`, `web/pages/cluster.js`). Enrich has Stop beside Dry run and Apply: it ends the run between two OpenAlex requests, keeps and writes what was found, says how far it got, and leaves Gaps.md, Candidates.md and References.json as they were (`src/services/enrich.js`, `web/pages/enrich.js`; test in `tests/unit/openalex-works.test.js`). |
 | B4a, B9, B10 | does not apply | No estimates with ranges and no "better" comparisons. |
 
-No departure is listed: the open item is work to do, not a rule set aside.
+No departure is listed, and nothing is open.
 
 ## Layers
 

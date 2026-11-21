@@ -44,3 +44,26 @@ test("enrichLibrary keeps the DOI results when the budget runs out during the ti
   assert.ok((await folder.readText(`98 - Publications/${lib.papers[0].stem}.md`)).includes("authors: Donald V. Steward"));
   assert.ok(await folder.exists("98 - Publications/Gaps.md"));
 });
+
+// Design rule E3a (design-rules ca374d1; Bass et al. 2001): a run over a minute stops between two requests, and what
+// the finished ones returned is kept and said. Right results by definition of the rule: Stop during the first title
+// search asks OpenAlex nothing more, still writes the fills found by DOI, and says it was stopped. The three report
+// files are not rewritten from a partial run: Gaps.md would list the papers not looked up yet as gaps.
+test("enrichLibrary: Stop between requests keeps what was found, says so, and leaves the report files alone", async () => {
+  const folder = memoryFolder(files());
+  const lib = await openLibrary(folder);
+  const stop = new AbortController(), asked = [];
+  const http = { get: async url => {
+    asked.push(url);
+    if (url.includes("title.search")) { stop.abort(); return reply(200, {}, { results: [] }); }   // Stop pressed during this request
+    return reply(200, {}, { results: [{ id: "W1", doi: "https://doi.org/10.1/a", title: lib.papers[0].title, publication_year: 1981, authorships: [{ author: { display_name: "Donald V. Steward" } }], referenced_works: [] }] });
+  } };
+  const r = await enrichLibrary(folder, lib, http, { apply: true, clock: { today: () => "2026-10-12" }, signal: stop.signal });
+  assert.equal(asked.filter(u => u.includes("title.search")).length, 1, "no request after Stop");
+  assert.equal(asked.length, 2, "nor any candidate lookup");
+  assert.match(r.incomplete, /^Stopped\b/);
+  assert.equal(r.stopped, true);
+  assert.ok((await folder.readText(`98 - Publications/${lib.papers[0].stem}.md`)).includes("authors: Donald V. Steward"));
+  assert.equal(await folder.exists("98 - Publications/Gaps.md"), false);
+  assert.deepEqual(r.files, []);
+});

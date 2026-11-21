@@ -15,10 +15,19 @@ export const enrich = {
     const metric = (v, l) => h("div", { class: "metric" }, h("div", { class: "v" }, v), h("div", { class: "l" }, l));
     ctx.metrics = [metric(P.length, "publications"), metric(P.filter(p => !p.doi).length, "without DOI"), metric(P.filter(p => !p.abstract).length, "without abstract"),
       metric(P.filter(p => !p.categories.length).length, "without concept map"), metric(P.filter(p => p.enrichedBy.length).length, "enriched before")];
-    const status = h("p", { class: "small muted", role: "status" }, LAST ? (LAST.apply ? `Written: ${LAST.written} notes changed, 3 report files.` : "Dry run: nothing written yet.") : "");
+    const status = h("p", { class: "small muted", role: "status" }, LAST ? (LAST.apply ? `Written: ${LAST.written} notes changed${LAST.stopped ? "; stopped, so the report files were left as they were" : ", 3 report files"}.` : "Dry run: nothing written yet.") : "");
+    // Stop beside the run's button while it runs (design rule E3a, Bass et al. 2001): the run ends after the request
+    // under way, and what it found is kept and said.
+    const stopBtn = btn("■ Stop", () => { if (backend.stopEnrich()) { stopBtn.disabled = true; stopBtn.textContent = "Stopping after this request…"; } }, "danger",
+      { title: "Stop after the request under way; what was found so far is kept", hidden: true });
+    const running = async (button, label, args) => {
+      stopBtn.hidden = false;
+      try { return await busy(button, () => backend.enrich({ ...args, onProgress: m => { status.textContent = m; } }), label); }
+      finally { stopBtn.hidden = true; }
+    };
     const dryBtn = btn("Dry run", async e => {
       const button = e.currentTarget;
-      LAST = await busy(button, () => backend.enrich({ onProgress: m => { status.textContent = m; } }), "Asking OpenAlex…");
+      LAST = await running(button, "Asking OpenAlex…", {});
       if (LAST) { toast(`${LAST.matched} of ${LAST.papers} papers found in OpenAlex`, "ok"); ctx.rerender(); }
     });
     const applyBtn = btn("Apply…", async e => {
@@ -26,8 +35,8 @@ export const enrich = {
       const n = LAST ? ` (last dry run: ${Object.values(LAST.fills).reduce((a, b) => a + b, 0)} fills, ${LAST.suggestions.doi + LAST.suggestions.category} proposals)` : "";
       const ok = await confirmBox("Enrich the notes?", `Empty properties in "${s.libraryDir}" are filled from OpenAlex, proposals go into suggested_doi / suggested_category, and Gaps.md, Candidates.md and References.json are rewritten${n}. Existing values are never changed; each touched note gets an enriched_by entry.`, "Apply");
       if (!ok) return;
-      LAST = await busy(button, () => backend.enrich({ apply: true, onProgress: m => { status.textContent = m; } }), "Writing…");
-      if (LAST) { toast(`Enriched: ${LAST.written} notes changed`, "ok"); ctx.rerender(); }
+      LAST = await running(button, "Writing…", { apply: true });
+      if (LAST) { toast(LAST.stopped ? `Stopped: ${LAST.written} notes changed so far` : `Enriched: ${LAST.written} notes changed`, LAST.stopped ? "" : "ok"); ctx.rerender(); }
     }, "primary");
     const summary = LAST ? card(LAST.apply ? "Written" : "What would be written", `${LAST.matched} of ${LAST.papers} papers found in OpenAlex by DOI.`,
       LAST.incomplete ? h("div", { class: "callout warn small", role: "status", style: "margin-bottom:10px" }, "⚠ ", LAST.incomplete) : null,
@@ -46,7 +55,7 @@ export const enrich = {
           h("li", {}, h("b", {}, "Proposals"), " are written apart: ", h("code", {}, "suggested_doi"), " when a paper without DOI is found by exact title and year, ", h("code", {}, "suggested_category"), " for notes without a concept map (nearest concept map by content). You accept by moving the value."),
           h("li", {}, h("b", {}, "Gaps.md"), " lists what no database can fill; the Claude skill ", h("code", {}, "library-fill-gaps"), " reads those PDFs and writes the abstract, and the reference list into ", h("code", {}, "cites"), " when that is empty. ", h("b", {}, "Candidates.md"), " lists papers cited by three or more library papers that are not in the library."),
           h("li", {}, s.mailto ? `Requests carry your email (${s.mailto}) for OpenAlex's polite pool.` : h("span", {}, "No email set for OpenAlex's polite pool — optional, set it in ", btn("Settings", () => window.settingsDialog(), "sm ghost"), ".")))),
-        card("Run", "Dry run first; apply writes the notes and the three files.", h("div", { class: "row" }, dryBtn, applyBtn), status,
+        card("Run", "Dry run first; apply writes the notes and the three files.", h("div", { class: "row" }, dryBtn, applyBtn, stopBtn), status,
           savedIn([[`${s.libraryDir}/*.md`, "empty properties, suggested_*, enriched_by, Abstract"], [`${s.libraryDir}/Gaps.md`], [`${s.libraryDir}/Candidates.md`], [`${s.libraryDir}/References.json`, "full reference lists"]]))),
       summary);
   },

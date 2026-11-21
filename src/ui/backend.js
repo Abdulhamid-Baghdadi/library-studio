@@ -30,6 +30,7 @@ export class Backend {
   #worker = null;
   #coWorker = null;
   #download = null;
+  #enrich = null;
   #template = null;
 
   /** @param {{workerUrl: URL, coCitationWorkerUrl: URL, templateUrl: URL}} p the workers (cluster discovery, co-citation) and the graph page template */
@@ -129,10 +130,17 @@ export class Backend {
   get lastCluster() { return this.entry?.lastCluster ?? null; }
 
   async enrich({ apply = false, onProgress } = {}) {
-    const r = await enrichLibrary(this.folder, this.library, this.#http(), { apply, mailto: this.settings.mailto, clock: clock(), onProgress });
-    if (apply) await this.reload();
-    return r;
+    if (this.#enrich) throw new Error("Enrich is already running.");
+    this.#enrich = new AbortController();
+    try {
+      const r = await enrichLibrary(this.folder, this.library, this.#http(), { apply, mailto: this.settings.mailto, clock: clock(), onProgress, signal: this.#enrich.signal });
+      if (apply) await this.reload();
+      return r;
+    } finally { this.#enrich = null; }
   }
+
+  /** Stops Enrich after the request under way (design rule E3a); what was found is kept. False when none runs. */
+  stopEnrich() { if (!this.#enrich) return false; this.#enrich.abort(); return true; }
 
   async checkLinks({ fix = false } = {}) {
     const r = await checkLinks(this.folder, this.library, { fix });

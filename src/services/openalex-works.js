@@ -49,10 +49,11 @@ export function withApiKey(http, key) {
   return { get: (url, headers) => http.get(url.startsWith("https://api.openalex.org/") ? `${url}${url.includes("?") ? "&" : "?"}api_key=${encodeURIComponent(key)}` : url, headers) };
 }
 
-export async function fetchWorksByDoi(http, dois, { mailto = "", fields = "id,doi,referenced_works", onProgress = () => {} } = {}) {
+export async function fetchWorksByDoi(http, dois, { mailto = "", fields = "id,doi,referenced_works", onProgress = () => {}, signal = null } = {}) {
   const works = new Map();
   const urls = worksByDoiUrls(dois.filter(d => !/[:,|]/.test(d)), { mailto, fields });
   for (const [i, url] of urls.entries()) {
+    if (signal?.aborted) break;                                // Stop: the works found so far are kept
     onProgress(`Asking OpenAlex (${i + 1} of ${urls.length})…`);
     for (const [doi, w] of worksFromResponse(await getJson(http, url) ?? {})) works.set(doi, w);
   }

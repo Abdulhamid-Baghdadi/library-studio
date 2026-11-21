@@ -9,6 +9,10 @@
  * Budget: the DOI lookups cost about 1 OpenAlex credit per 50 papers, each title search 10 credits. When the
  * daily budget runs out during the title searches or the candidate lookups, the run keeps what it has and
  * says so in `incomplete`; without the DOI lookups nothing can be done and the error is raised.
+ *
+ * Stop (`signal`, an AbortSignal) ends the run between two requests (design rule E3a, Bass et al. 2001): what the
+ * finished requests found is kept and written, `stopped` is true and `incomplete` says how far it got. The three report
+ * files are then left as they were, since Gaps.md would list every paper not looked up yet as a gap.
  * @module services/enrich
  */
 import { boilerplate, noteText, tfidf } from "../domain/cluster-text.js";
@@ -17,21 +21,25 @@ import { applyPlan, candidateList, candidatesMarkdown, categoryProposals, FILES,
 import { normalizeDoi, titleSearchUrl, WORK_FIELDS, worksByIdUrls, worksList } from "../domain/openalex.js";
 import { fetchWorksByDoi, getJson, OpenAlexBudgetError } from "./openalex-works.js";
 
-export async function enrichLibrary(folder, library, http, { apply = false, mailto = "", clock, onProgress = () => {} }) {
+export async function enrichLibrary(folder, library, http, { apply = false, mailto = "", clock, onProgress = () => {}, signal = null }) {
   const papers = library.papers;
   const today = clock.today();
 
   // 1. metadata and reference lists by DOI
   const dois = [...new Set(papers.map(p => normalizeDoi(p.doi)).filter(Boolean))];
-  const works = await fetchWorksByDoi(http, dois, { mailto, fields: WORK_FIELDS, onProgress });
+  const works = await fetchWorksByDoi(http, dois, { mailto, fields: WORK_FIELDS, onProgress, signal });
 
   // 2. papers without a match: one title search each
   const unmatched = papers.filter(p => !works.has(normalizeDoi(p.doi)));
   const titleMatches = new Map();
-  let incomplete = "";
+  let incomplete = "", stopped = false;
+  const stop = what => { stopped = true; incomplete = `Stopped by you ${what}. What was found so far is kept; Gaps.md, Candidates.md and References.json were not rewritten. Run Enrich again to finish.`; };
+  if (signal?.aborted) stop(`during the DOI lookups (${works.size} paper(s) found)`);
   const toSearch = unmatched.filter(p => p.title && !(p.suggestedDoi && !p.doi));
   try {
     for (const [i, p] of toSearch.entries()) {
+      if (stopped) break;
+      if (signal?.aborted) { stop(`after ${i} of ${toSearch.length} title searches`); break; }
       onProgress(`Looking up titles of papers without a DOI match (${i + 1} of ${toSearch.length})…`);
       const found = worksList(await getJson(http, titleSearchUrl(p.title, p.year.slice(0, 4), { mailto })))
         .find(w => titleKey(w.title) === titleKey(p.title) && (!p.year || !w.year || w.year === p.year.slice(0, 4)));
@@ -54,7 +62,8 @@ export async function enrichLibrary(folder, library, http, { apply = false, mail
   const idUrls = worksByIdUrls(candidates.map(c => c.id), { mailto });
   try {
     for (const [i, url] of idUrls.entries()) {
-      if (incomplete) break;                                   // budget already used up: keep the ids
+      if (incomplete) break;                                   // budget used up or stopped: keep the ids
+      if (signal?.aborted) { stop(`after ${i} of ${idUrls.length} candidate lookups`); break; }
       onProgress(`Looking up the candidate papers (${i + 1} of ${idUrls.length})…`);
       for (const w of worksList(await getJson(http, url))) {
         const c = candidates.find(x => x.id === w.id);
@@ -74,7 +83,7 @@ export async function enrichLibrary(folder, library, http, { apply = false, mail
     fills: { authors: sum("authors"), journal: sum("journal"), year: sum("year"), url: sum("url"), abstract: plans.filter(p => p.abstract).length },
     suggestions: { doi: plans.filter(p => p.suggestions.suggested_doi).length, category: plans.filter(p => p.suggestions.suggested_category).length },
     disagreements: plans.reduce((a, p) => a + p.disagreements.length, 0), gaps: plans.filter(p => p.gaps.length).length,
-    candidates: candidates.length, written: 0, files: [], plans, apply, incomplete,
+    candidates: candidates.length, written: 0, files: [], plans, apply, incomplete, stopped,
   };
   if (!apply) return summary;
   for (const [i, p] of plans.entries()) {
@@ -84,6 +93,7 @@ export async function enrichLibrary(folder, library, http, { apply = false, mail
     if (next !== text) { await folder.writeText(path, next); summary.written++; }
     if (i % 25 === 24) onProgress(`Writing the notes (${i + 1} of ${plans.length})…`);
   }
+  if (stopped) return summary;
   await folder.writeText(`${library.dir}/${FILES.gaps}`, gapsMarkdown(plans, { today }));
   await folder.writeText(`${library.dir}/${FILES.candidates}`, candidatesMarkdown(candidates, { today }));
   await folder.writeText(`${library.dir}/${FILES.references}`, JSON.stringify(referencesJson(papers, works, candidates, { today }), null, 1));
